@@ -58,7 +58,7 @@
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
-    // Google Apps Script Web App Endpoint URL (Google Sheets ID: 1orXaAGiTgG7xHaslaEf_H9On0eubN8JHfR21OQswLCo)
+    // Google Apps Script Web App Endpoint URL
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwD38weG3TQCxNcUAU6u5-ZF7YLvuKbmJsLkuDvb68oyvyntutyxolNH1l5arioswh55Q/exec";
 
     // Helper: Convert Google Drive Viewing Links into Direct Image Link URLs
@@ -72,6 +72,39 @@
       return url;
     };
 
+    // Fallback Initial Data Sets
+    const defaultMatches = [
+      { id: "M001", sport: "บาสเกตบอล", category: "ชาย ม.ปลาย", time: "09:00 น.", location: "สนาม 1", status: "finished", winner: "สีฟ้า", score: "42 - 38" },
+      { id: "M002", sport: "วอลเลย์บอล", category: "หญิง ม.ต้น", time: "10:30 น.", location: "อาคารอเนกประสงค์", status: "live", winner: "-", score: "1 - 1 เซต" },
+      { id: "M003", sport: "ฟุตซอล", category: "ชาย ม.ต้น", time: "13:00 น.", location: "สนามฟุตซอล", status: "waiting", winner: "-", score: "-" }
+    ];
+
+    const defaultMedals = [
+      { color: "สีฟ้า", gold: 12, silver: 8, bronze: 10 },
+      { color: "สีแสด", gold: 10, silver: 11, bronze: 7 }
+    ];
+
+    const defaultTeachers = [
+      { id: "T1", name: "ผอ.สมชาย ใจดี", position: "ผู้อำนวยการโรงเรียน", group: "คณะกรรมการกลาง", photo: "", phone: "081-234-5678" },
+      { id: "T2", name: "ครูพงศธร สายเสนี", position: "หัวหน้างานกีฬา / คณะครูสีฟ้า", group: "คณะครูประจำคณะสีฟ้า", photo: "", phone: "089-999-8888" },
+      { id: "T3", name: "ครูชนิกานต์ มีอุสาห์", position: "ครูประจำคณะสีแสด", group: "คณะครูประจำคณะสีแสด", photo: "", phone: "087-654-3210" }
+    ];
+
+    const defaultStaff = [
+      { id: "ST1", name: "นายพิชิต ชัยชนะ", room: "ม.5/1", color: "สีฟ้า", photo: "" },
+      { id: "ST2", name: "นางสาวศิริพร บุญมี", room: "ม.5/2", color: "สีฟ้า", photo: "" },
+      { id: "ST3", name: "นายอนุรักษ์ ร่วมใจ", room: "ม.5/3", color: "สีแสด", photo: "" }
+    ];
+
+    const defaultStudents = [
+      { id: "S1", room: "ม.1/1", color: "สีฟ้า", chartPhoto: "" },
+      { id: "S2", room: "ม.1/2", color: "สีแสด", chartPhoto: "" }
+    ];
+
+    const defaultAlbums = [
+      { id: "A1", title: "พิธีเปิดการแข่งขันกีฬาสีประจำปี 2026", date: "2026-11-12", cover: "", driveUrl: "https://drive.google.com/drive/folders/1CfD2HNvbWvZqax5eemUWbuwu1d3iTt28?usp=drive_link" }
+    ];
+
     function App() {
       const [activeTab, setActiveTab] = useState('home');
       const [isAdmin, setIsAdmin] = useState(false);
@@ -80,21 +113,18 @@
       const [isLoading, setIsLoading] = useState(true);
       const [isSyncing, setIsSyncing] = useState(false);
 
-      // Online Data States (Synced 100% with Google Sheets)
-      const [matches, setMatches] = useState([]);
-      const [medalData, setMedalData] = useState([
-        { color: "สีฟ้า", gold: 0, silver: 0, bronze: 0 },
-        { color: "สีแสด", gold: 0, silver: 0, bronze: 0 }
-      ]);
-      const [teachers, setTeachers] = useState([]);
-      const [staffM5, setStaffM5] = useState([]);
-      const [students, setStudents] = useState([]);
-      const [albums, setAlbums] = useState([]);
+      // Data States initialized with Fallback Default Data
+      const [matches, setMatches] = useState(defaultMatches);
+      const [medalData, setMedalData] = useState(defaultMedals);
+      const [teachers, setTeachers] = useState(defaultTeachers);
+      const [staffM5, setStaffM5] = useState(defaultStaff);
+      const [students, setStudents] = useState(defaultStudents);
+      const [albums, setAlbums] = useState(defaultAlbums);
 
       const [modalType, setModalType] = useState(null);
       const [editingItem, setEditingItem] = useState(null);
 
-      // Initial Load from Google Sheets
+      // Initial Fetch on Startup
       useEffect(() => {
         fetchOnlineData();
       }, []);
@@ -103,14 +133,14 @@
         if (window.lucide) window.lucide.createIcons();
       });
 
-      // Fetch Real-time Online Data
+      // Fetch Online Data with automatic fallback
       const fetchOnlineData = async () => {
         setIsSyncing(true);
         try {
           const res = await fetch(GOOGLE_SCRIPT_URL);
           const data = await res.json();
 
-          if (data.Matches) setMatches(data.Matches);
+          if (data.Matches && data.Matches.length > 0) setMatches(data.Matches);
           if (data.Medals && data.Medals.length > 0) {
             const formatted = data.Medals.map(m => ({
               color: m.color,
@@ -120,19 +150,19 @@
             }));
             setMedalData(formatted);
           }
-          if (data.Teachers) setTeachers(data.Teachers);
-          if (data.Staff) setStaffM5(data.Staff);
-          if (data.Students) setStudents(data.Students);
-          if (data.Albums) setAlbums(data.Albums);
+          if (data.Teachers && data.Teachers.length > 0) setTeachers(data.Teachers);
+          if (data.Staff && data.Staff.length > 0) setStaffM5(data.Staff);
+          if (data.Students && data.Students.length > 0) setStudents(data.Students);
+          if (data.Albums && data.Albums.length > 0) setAlbums(data.Albums);
         } catch (err) {
-          console.error("Fetch Google Sheets Error:", err);
-        } fontally: {
+          console.warn("Could not load from Google Sheets, showing initial default data:", err);
+        } finally {
           setIsSyncing(false);
           setIsLoading(false);
         }
       };
 
-      // Save Data to Google Sheets and Reload Real-time State
+      // Save Data to Google Sheets & Sync State
       const saveOnlineData = async (sheetName, updatedData) => {
         setIsSyncing(true);
         try {
@@ -165,29 +195,35 @@
           sheetName = "Matches";
           const exists = matches.some(m => m.id === item.id);
           updatedList = exists ? matches.map(m => m.id === item.id ? item : m) : [...matches, item];
+          setMatches(updatedList);
         } else if (type === 'medal') {
           sheetName = "Medals";
           updatedList = medalData.map(m => m.color === item.color ? item : m);
+          setMedalData(updatedList);
         } else if (type === 'teacher') {
           sheetName = "Teachers";
           const formatted = { ...item, photo: formatDriveImageUrl(item.photo) };
           const exists = teachers.some(t => t.id === item.id);
           updatedList = exists ? teachers.map(t => t.id === item.id ? formatted : t) : [...teachers, formatted];
+          setTeachers(updatedList);
         } else if (type === 'staff') {
           sheetName = "Staff";
           const formatted = { ...item, photo: formatDriveImageUrl(item.photo) };
           const exists = staffM5.some(s => s.id === item.id);
           updatedList = exists ? staffM5.map(s => s.id === item.id ? formatted : s) : [...staffM5, formatted];
+          setStaffM5(updatedList);
         } else if (type === 'student') {
           sheetName = "Students";
           const formatted = { ...item, chartPhoto: formatDriveImageUrl(item.chartPhoto) };
           const exists = students.some(st => st.id === item.id);
           updatedList = exists ? students.map(st => st.id === item.id ? formatted : st) : [...students, formatted];
+          setStudents(updatedList);
         } else if (type === 'album') {
           sheetName = "Albums";
           const formatted = { ...item, cover: formatDriveImageUrl(item.cover) };
           const exists = albums.some(a => a.id === item.id);
           updatedList = exists ? albums.map(a => a.id === item.id ? formatted : a) : [...albums, formatted];
+          setAlbums(updatedList);
         }
 
         setModalType(null);
@@ -200,11 +236,11 @@
         let updatedList = [];
         let sheetName = "";
 
-        if (type === 'match') { sheetName = "Matches"; updatedList = matches.filter(m => m.id !== id); }
-        else if (type === 'teacher') { sheetName = "Teachers"; updatedList = teachers.filter(t => t.id !== id); }
-        else if (type === 'staff') { sheetName = "Staff"; updatedList = staffM5.filter(s => s.id !== id); }
-        else if (type === 'student') { sheetName = "Students"; updatedList = students.filter(st => st.id !== id); }
-        else if (type === 'album') { sheetName = "Albums"; updatedList = albums.filter(a => a.id !== id); }
+        if (type === 'match') { sheetName = "Matches"; updatedList = matches.filter(m => m.id !== id); setMatches(updatedList); }
+        else if (type === 'teacher') { sheetName = "Teachers"; updatedList = teachers.filter(t => t.id !== id); setTeachers(updatedList); }
+        else if (type === 'staff') { sheetName = "Staff"; updatedList = staffM5.filter(s => s.id !== id); setStaffM5(updatedList); }
+        else if (type === 'student') { sheetName = "Students"; updatedList = students.filter(st => st.id !== id); setStudents(updatedList); }
+        else if (type === 'album') { sheetName = "Albums"; updatedList = albums.filter(a => a.id !== id); setAlbums(updatedList); }
 
         if (sheetName) await saveOnlineData(sheetName, updatedList);
       };
@@ -242,14 +278,14 @@
       return (
         <div class="min-h-screen flex flex-col justify-between">
           
-          {/* Header Bar */}
+          {/* Header */}
           <header class="bg-gradient-to-r from-brand-blueDark via-brand-blue to-brand-orange text-white shadow-lg sticky top-0 z-40 no-print">
             <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
               <div class="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
                 <div class="w-10 h-10 rounded-full bg-white text-brand-blue flex items-center justify-center font-bold text-lg shadow">🏆</div>
                 <div>
                   <h1 class="text-base sm:text-lg font-bold leading-tight">ระบบจัดการและติดตามผลการแข่งขันกีฬาสี 2026</h1>
-                  <p class="text-xs text-orange-200">โรงเรียนโกสัมพีวิทยา • Google Sheets Online Sync 100%</p>
+                  <p class="text-xs text-orange-200">โรงเรียนโกสัมพีวิทยา • Google Sheets Online Sync</p>
                 </div>
               </div>
 
@@ -296,7 +332,7 @@
             {isLoading ? (
               <div class="text-center py-20 space-y-3">
                 <div class="w-10 h-10 border-4 border-brand-orange border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <p class="text-sm font-semibold text-slate-600">กำลังเชื่อมต่อข้อมูลออนไลน์จาก Google Sheets...</p>
+                <p class="text-sm font-semibold text-slate-600">กำลังเชื่อมต่อข้อมูลออนไลน์...</p>
               </div>
             ) : (
               <>
@@ -373,29 +409,25 @@
                           </tr>
                         </thead>
                         <tbody class="divide-y">
-                          {matches.length === 0 ? (
-                            <tr><td colSpan="6" class="p-4 text-center text-slate-400">ยังไม่มีข้อมูลใน Google Sheets</td></tr>
-                          ) : (
-                            matches.map(m => (
-                              <tr key={m.id} class="hover:bg-slate-50">
-                                <td class="p-3 font-semibold">{m.sport} ({m.category})</td>
-                                <td class="p-3 text-slate-600">{m.time}</td>
-                                <td class="p-3 text-slate-600">{m.location}</td>
-                                <td class="p-3">
-                                  <span class={`px-2 py-0.5 rounded text-[10px] font-bold ${m.status==='live'?'bg-red-100 text-red-600 animate-pulse':m.status==='finished'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}`}>
-                                    {m.status==='live'?'🔴 กำลังแข่ง':m.status==='finished'?'จบการแข่ง':'รอแข่ง'}
-                                  </span>
+                          {matches.map(m => (
+                            <tr key={m.id} class="hover:bg-slate-50">
+                              <td class="p-3 font-semibold">{m.sport} ({m.category})</td>
+                              <td class="p-3 text-slate-600">{m.time}</td>
+                              <td class="p-3 text-slate-600">{m.location}</td>
+                              <td class="p-3">
+                                <span class={`px-2 py-0.5 rounded text-[10px] font-bold ${m.status==='live'?'bg-red-100 text-red-600 animate-pulse':m.status==='finished'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}`}>
+                                  {m.status==='live'?'🔴 กำลังแข่ง':m.status==='finished'?'จบการแข่ง':'รอแข่ง'}
+                                </span>
+                              </td>
+                              <td class="p-3 font-medium">{m.score} {m.winner!=='-'&&`(${m.winner})`}</td>
+                              {isAdmin && (
+                                <td class="p-3 text-center space-x-2">
+                                  <button onClick={() => { setEditingItem(m); setModalType('match'); }} class="text-blue-600">✏️</button>
+                                  <button onClick={() => handleDeleteItem('match', m.id)} class="text-red-600">🗑️</button>
                                 </td>
-                                <td class="p-3 font-medium">{m.score} {m.winner!=='-'&&`(${m.winner})`}</td>
-                                {isAdmin && (
-                                  <td class="p-3 text-center space-x-2">
-                                    <button onClick={() => { setEditingItem(m); setModalType('match'); }} class="text-blue-600">✏️</button>
-                                    <button onClick={() => handleDeleteItem('match', m.id)} class="text-red-600">🗑️</button>
-                                  </td>
-                                )}
-                              </tr>
-                            ))
-                          )}
+                              )}
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
