@@ -8,7 +8,6 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Custom Font & Color Palette Configuration -->
   <script>
     tailwind.config = {
       theme: {
@@ -17,11 +16,8 @@
             brand: {
               blue: '#0055A5',
               blueDark: '#003B73',
-              blueLight: '#E6F0FA',
               orange: '#FF6B00',
               orangeDark: '#C85200',
-              orangeLight: '#FFF0E6',
-              accent: '#FFB800'
             }
           },
           fontFamily: {
@@ -47,46 +43,27 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
-    body {
-      font-family: 'Prompt', 'Sarabun', sans-serif;
-      background-color: #F8FAFC;
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #F1F5F9;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #CBD5E1;
-      border-radius: 3px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #94A3B8;
-    }
-    @media print {
-      .no-print { display: none !important; }
-      .print-only { display: block !important; }
-    }
+    body { font-family: 'Prompt', 'Sarabun', sans-serif; background-color: #F8FAFC; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #F1F5F9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+    @media print { .no-print { display: none !important; } }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased selection:bg-orange-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 antialiased">
 
   <div id="root"></div>
 
-  <!-- React Application Logic -->
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
-    // Google Apps Script API Endpoint URL
+    // Google Apps Script Web App Endpoint
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwD38weG3TQCxNcUAU6u5-ZF7YLvuKbmJsLkuDvb68oyvyntutyxolNH1l5arioswh55Q/exec";
 
-    // Helper Function: Convert any Google Drive URL into direct viewing URL
+    // Convert Google Drive Links to Direct Image URLs
     const formatDriveImageUrl = (url) => {
       if (!url) return '';
       if (url.includes('lh3.googleusercontent.com/d/')) return url;
-      
       const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
       if (match && match[1]) {
         return `https://lh3.googleusercontent.com/d/${match[1]}`;
@@ -94,64 +71,30 @@
       return url;
     };
 
-    // Initial Default Data
-    const initialMatches = [
-      { id: "M001", sport: "บาสเกตบอล", category: "ชาย ม.ปลาย", time: "2026-11-12 09:00", location: "สนาม 1", status: "finished", winner: "สีฟ้า", score: "42 - 38" },
-      { id: "M002", sport: "วอลเลย์บอล", category: "หญิง ม.ต้น", time: "2026-11-12 10:30", location: "อาคารอเนกประสงค์", status: "live", winner: "-", score: "1 - 1 เซต" },
-      { id: "M003", sport: "ฟุตซอล", category: "ชาย ม.ต้น", time: "2026-11-12 13:00", location: "สนามฟุตซอล", status: "waiting", winner: "-", score: "-" },
-      { id: "M004", sport: "แชร์บอล", category: "หญิง ม.ปลาย", time: "2026-11-12 14:30", location: "สนาม 2", status: "waiting", winner: "-", score: "-" }
-    ];
-
-    const initialMedalData = [
-      { color: "สีฟ้า", gold: 12, silver: 8, bronze: 10 },
-      { color: "สีแสด", gold: 10, silver: 11, bronze: 7 }
-    ];
-
-    const initialTeachers = [
-      { id: "T1", name: "ผอ.สมชาย ใจดี", position: "ผู้อำนวยการโรงเรียน", group: "คณะกรรมการกลาง", photo: "", phone: "081-234-5678" },
-      { id: "T2", name: "ครูพงศธร สายเสนี", position: "หัวหน้างานกีฬา / คณะครูสีฟ้า", group: "คณะครูประจำคณะสีฟ้า", photo: "", phone: "089-999-8888" },
-      { id: "T3", name: "ครูชนิกานต์ มีอุสาห์", position: "ครูประจำคณะสีแสด", group: "คณะครูประจำคณะสีแสด", photo: "", phone: "087-654-3210" }
-    ];
-
-    const initialStaffM5 = [
-      { id: "ST1", name: "นายพิชิต ชัยชนะ", room: "ม.5/1", color: "สีฟ้า", photo: "" },
-      { id: "ST2", name: "นางสาวศิริพร บุญมี", room: "ม.5/2", color: "สีฟ้า", photo: "" },
-      { id: "ST3", name: "นายอนุรักษ์ ร่วมใจ", room: "ม.5/3", color: "สีแสด", photo: "" }
-    ];
-
-    const initialStudents = [
-      { id: "S1", room: "ม.1/1", color: "สีฟ้า", chartPhoto: "" },
-      { id: "S2", room: "ม.1/2", color: "สีแสด", chartPhoto: "" },
-      { id: "S3", room: "ม.2/1", color: "สีฟ้า", chartPhoto: "" }
-    ];
-
-    const initialAlbums = [
-      { id: "A1", title: "พิธีเปิดการแข่งขันกีฬาสีประจำปี 2026", date: "2026-11-12", cover: "", driveUrl: "https://drive.google.com/drive/folders/1CfD2HNvbWvZqax5eemUWbuwu1d3iTt28?usp=drive_link" },
-      { id: "A2", title: "การแข่งขันบาสเกตบอล รอบชิงชนะเลิศ", date: "2026-11-12", cover: "", driveUrl: "https://drive.google.com/drive/folders/1CfD2HNvbWvZqax5eemUWbuwu1d3iTt28?usp=drive_link" }
-    ];
-
     function App() {
       const [activeTab, setActiveTab] = useState('home');
       const [isAdmin, setIsAdmin] = useState(false);
       const [pinInput, setPinInput] = useState('');
       const [loginError, setLoginError] = useState('');
+      const [isLoading, setIsLoading] = useState(true);
       const [isSyncing, setIsSyncing] = useState(false);
 
-      const [siteTitle, setSiteTitle] = useState('ระบบจัดการและติดตามผลการแข่งขันกีฬาสี 2026');
-      const [schoolName, setSchoolName] = useState('โรงเรียนโกสัมพีวิทยา');
-
-      const [matches, setMatches] = useState(initialMatches);
-      const [medalData, setMedalData] = useState(initialMedalData);
-      const [teachers, setTeachers] = useState(initialTeachers);
-      const [staffM5, setStaffM5] = useState(initialStaffM5);
-      const [students, setStudents] = useState(initialStudents);
-      const [albums, setAlbums] = useState(initialAlbums);
+      // ONLINE DATA STATES (Empty initial states - purely populated from Google Sheets)
+      const [matches, setMatches] = useState([]);
+      const [medalData, setMedalData] = useState([
+        { color: "สีฟ้า", gold: 0, silver: 0, bronze: 0 },
+        { color: "สีแสด", gold: 0, silver: 0, bronze: 0 }
+      ]);
+      const [teachers, setTeachers] = useState([]);
+      const [staffM5, setStaffM5] = useState([]);
+      const [students, setStudents] = useState([]);
+      const [albums, setAlbums] = useState([]);
 
       const [modalType, setModalType] = useState(null);
       const [editingItem, setEditingItem] = useState(null);
 
+      // Fetch Pure Online Data on Page Load
       useEffect(() => {
-        loadDataFromLocal();
         fetchOnlineData();
       }, []);
 
@@ -159,60 +102,49 @@
         if (window.lucide) window.lucide.createIcons();
       });
 
-      const loadDataFromLocal = () => {
-        try {
-          const m = localStorage.getItem('sds_matches');
-          const md = localStorage.getItem('sds_medals');
-          const t = localStorage.getItem('sds_teachers');
-          const st = localStorage.getItem('sds_staff');
-          const s = localStorage.getItem('sds_students');
-          const a = localStorage.getItem('sds_albums');
-
-          if (m) setMatches(JSON.parse(m));
-          if (md) setMedalData(JSON.parse(md));
-          if (t) setTeachers(JSON.parse(t));
-          if (st) setStaffM5(JSON.parse(st));
-          if (s) setStudents(JSON.parse(s));
-          if (a) setAlbums(JSON.parse(a));
-        } catch (e) {
-          console.error("Local load error", e);
-        }
-      };
-
-      const saveDataToLocal = (key, data) => {
-        try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) {}
-      };
-
+      // Fetch ALL Data directly from Google Sheets
       const fetchOnlineData = async () => {
         setIsSyncing(true);
         try {
           const res = await fetch(GOOGLE_SCRIPT_URL);
           const data = await res.json();
 
-          if (data.Matches && data.Matches.length > 0) { setMatches(data.Matches); saveDataToLocal('sds_matches', data.Matches); }
+          if (data.Matches) setMatches(data.Matches);
           if (data.Medals && data.Medals.length > 0) {
-            const formatted = data.Medals.map(item => ({ ...item, gold: parseInt(item.gold||0), silver: parseInt(item.silver||0), bronze: parseInt(item.bronze||0) }));
-            setMedalData(formatted); saveDataToLocal('sds_medals', formatted);
+            const formatted = data.Medals.map(m => ({
+              color: m.color,
+              gold: parseInt(m.gold || 0),
+              silver: parseInt(m.silver || 0),
+              bronze: parseInt(m.bronze || 0)
+            }));
+            setMedalData(formatted);
           }
-          if (data.Teachers && data.Teachers.length > 0) { setTeachers(data.Teachers); saveDataToLocal('sds_teachers', data.Teachers); }
-          if (data.Staff && data.Staff.length > 0) { setStaffM5(data.Staff); saveDataToLocal('sds_staff', data.Staff); }
-          if (data.Students && data.Students.length > 0) { setStudents(data.Students); saveDataToLocal('sds_students', data.Students); }
-          if (data.Albums && data.Albums.length > 0) { setAlbums(data.Albums); saveDataToLocal('sds_albums', data.Albums); }
+          if (data.Teachers) setTeachers(data.Teachers);
+          if (data.Staff) setStaffM5(data.Staff);
+          if (data.Students) setStudents(data.Students);
+          if (data.Albums) setAlbums(data.Albums);
         } catch (err) {
-          console.warn("Using offline local data.");
+          console.error("เกิดข้อผิดพลาดในการดึงข้อมูลจาก Google Sheets:", err);
         } finally {
           setIsSyncing(false);
+          setIsLoading(false);
         }
       };
 
+      // Save Data directly to Google Sheets & Reload Real-time
       const saveOnlineData = async (sheetName, updatedData) => {
+        setIsSyncing(true);
         try {
           await fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
             body: JSON.stringify({ action: sheetName, data: updatedData })
           });
+          // Re-fetch online data after saving to guarantee 100% sync
+          await fetchOnlineData();
         } catch (err) {
-          console.error("Online save error:", err);
+          alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลไปยัง Google Sheets");
+        } finally {
+          setIsSyncing(false);
         }
       };
 
@@ -233,51 +165,46 @@
           sheetName = "Matches";
           const exists = matches.some(m => m.id === item.id);
           updatedList = exists ? matches.map(m => m.id === item.id ? item : m) : [...matches, item];
-          setMatches(updatedList); saveDataToLocal('sds_matches', updatedList);
         } else if (type === 'medal') {
           sheetName = "Medals";
           updatedList = medalData.map(m => m.color === item.color ? item : m);
-          setMedalData(updatedList); saveDataToLocal('sds_medals', updatedList);
         } else if (type === 'teacher') {
           sheetName = "Teachers";
-          const formattedItem = { ...item, photo: formatDriveImageUrl(item.photo) };
+          const formatted = { ...item, photo: formatDriveImageUrl(item.photo) };
           const exists = teachers.some(t => t.id === item.id);
-          updatedList = exists ? teachers.map(t => t.id === item.id ? formattedItem : t) : [...teachers, formattedItem];
-          setTeachers(updatedList); saveDataToLocal('sds_teachers', updatedList);
+          updatedList = exists ? teachers.map(t => t.id === item.id ? formatted : t) : [...teachers, formatted];
         } else if (type === 'staff') {
           sheetName = "Staff";
-          const formattedItem = { ...item, photo: formatDriveImageUrl(item.photo) };
+          const formatted = { ...item, photo: formatDriveImageUrl(item.photo) };
           const exists = staffM5.some(s => s.id === item.id);
-          updatedList = exists ? staffM5.map(s => s.id === item.id ? formattedItem : s) : [...staffM5, formattedItem];
-          setStaffM5(updatedList); saveDataToLocal('sds_staff', updatedList);
+          updatedList = exists ? staffM5.map(s => s.id === item.id ? formatted : s) : [...staffM5, formatted];
         } else if (type === 'student') {
           sheetName = "Students";
-          const formattedItem = { ...item, chartPhoto: formatDriveImageUrl(item.chartPhoto) };
+          const formatted = { ...item, chartPhoto: formatDriveImageUrl(item.chartPhoto) };
           const exists = students.some(st => st.id === item.id);
-          updatedList = exists ? students.map(st => st.id === item.id ? formattedItem : st) : [...students, formattedItem];
-          setStudents(updatedList); saveDataToLocal('sds_students', updatedList);
+          updatedList = exists ? students.map(st => st.id === item.id ? formatted : st) : [...students, formatted];
         } else if (type === 'album') {
           sheetName = "Albums";
-          const formattedItem = { ...item, cover: formatDriveImageUrl(item.cover) };
+          const formatted = { ...item, cover: formatDriveImageUrl(item.cover) };
           const exists = albums.some(a => a.id === item.id);
-          updatedList = exists ? albums.map(a => a.id === item.id ? formattedItem : a) : [...albums, formattedItem];
-          setAlbums(updatedList); saveDataToLocal('sds_albums', updatedList);
+          updatedList = exists ? albums.map(a => a.id === item.id ? formatted : a) : [...albums, formatted];
         }
 
-        setModalType(null); setEditingItem(null);
+        setModalType(null);
+        setEditingItem(null);
         if (sheetName) await saveOnlineData(sheetName, updatedList);
       };
 
       const handleDeleteItem = async (type, id) => {
-        if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?")) return;
+        if (!confirm("ต้องการลบรายการนี้ใน Google Sheets หรือไม่?")) return;
         let updatedList = [];
         let sheetName = "";
 
-        if (type === 'match') { sheetName = "Matches"; updatedList = matches.filter(m => m.id !== id); setMatches(updatedList); saveDataToLocal('sds_matches', updatedList); }
-        else if (type === 'teacher') { sheetName = "Teachers"; updatedList = teachers.filter(t => t.id !== id); setTeachers(updatedList); saveDataToLocal('sds_teachers', updatedList); }
-        else if (type === 'staff') { sheetName = "Staff"; updatedList = staffM5.filter(s => s.id !== id); setStaffM5(updatedList); saveDataToLocal('sds_staff', updatedList); }
-        else if (type === 'student') { sheetName = "Students"; updatedList = students.filter(st => st.id !== id); setStudents(updatedList); saveDataToLocal('sds_students', updatedList); }
-        else if (type === 'album') { sheetName = "Albums"; updatedList = albums.filter(a => a.id !== id); setAlbums(updatedList); saveDataToLocal('sds_albums', updatedList); }
+        if (type === 'match') { sheetName = "Matches"; updatedList = matches.filter(m => m.id !== id); }
+        else if (type === 'teacher') { sheetName = "Teachers"; updatedList = teachers.filter(t => t.id !== id); }
+        else if (type === 'staff') { sheetName = "Staff"; updatedList = staffM5.filter(s => s.id !== id); }
+        else if (type === 'student') { sheetName = "Students"; updatedList = students.filter(st => st.id !== id); }
+        else if (type === 'album') { sheetName = "Albums"; updatedList = albums.filter(a => a.id !== id); }
 
         if (sheetName) await saveOnlineData(sheetName, updatedList);
       };
@@ -294,19 +221,19 @@
 
       const handlePrintPDF = () => {
         const element = document.getElementById('report-print-area');
-        const opt = { margin: 10, filename: `รายงานสรุปผลกีฬาสี_2026.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+        const opt = { margin: 10, filename: `รายงานกีฬาสี_2026.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } };
         if (window.html2pdf) window.html2pdf().set(opt).from(element).save();
         else window.print();
       };
 
       const handleExportCSV = () => {
         let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-        csvContent += "ลำดับ,รายการกีฬา,ประเภท,วันเวลา,สถานที่,สถานะ,ผลการแข่งขัน,สกอร์\n";
+        csvContent += "ลำดับ,รายการกีฬา,ประเภท,วันเวลา,สถานที่,สถานะ,ผู้ชนะ,สกอร์\n";
         matches.forEach((m, idx) => { csvContent += `${idx + 1},${m.sport},${m.category},${m.time},${m.location},${m.status},${m.winner},${m.score}\n`; });
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `ตารางแข่งขันกีฬาสี_2026.csv`);
+        link.setAttribute("download", `ตารางแข่งขัน_2026.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -314,585 +241,487 @@
 
       return (
         <div class="min-h-screen flex flex-col justify-between">
+          
+          {/* Header Bar */}
           <header class="bg-gradient-to-r from-brand-blueDark via-brand-blue to-brand-orange text-white shadow-lg sticky top-0 z-40 no-print">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div class="flex items-center justify-between h-20">
-                <div class="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-                  <div class="w-12 h-12 rounded-full bg-white text-brand-blue flex items-center justify-center font-bold text-xl shadow-md border-2 border-brand-orange">🏆</div>
-                  <div>
-                    <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-tight">{siteTitle}</h1>
-                    <p class="text-xs sm:text-sm text-orange-200 font-light">{schoolName} • คณะสีฟ้า 💙 & คณะสีแสด 🧡</p>
-                  </div>
-                </div>
-
-                <div class="flex items-center space-x-3">
-                  <button onClick={fetchOnlineData} disabled={isSyncing} class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition text-xs flex items-center space-x-1">
-                    <i data-lucide="refresh-cw" class={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`}></i>
-                    <span class="hidden md:inline">{isSyncing ? 'กำลังซิงค์...' : 'รีเฟรช'}</span>
-                  </button>
-
-                  {isAdmin ? (
-                    <div class="flex items-center space-x-2 bg-white/20 px-3 py-1.5 rounded-full text-xs font-medium">
-                      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                      <span>เจ้าหน้าที่ Admin</span>
-                      <button onClick={() => setIsAdmin(false)} class="text-orange-200 hover:text-white underline ml-2">ออกจากระบบ</button>
-                    </div>
-                  ) : (
-                    <button onClick={() => setActiveTab('admin')} class="bg-brand-orange hover:bg-brand-orangeDark text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-md transition flex items-center space-x-1">
-                      <i data-lucide="lock" class="w-4 h-4"></i>
-                      <span>เข้าสู่ระบบเจ้าหน้าที่</span>
-                    </button>
-                  )}
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+              <div class="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
+                <div class="w-10 h-10 rounded-full bg-white text-brand-blue flex items-center justify-center font-bold text-lg">🏆</div>
+                <div>
+                  <h1 class="text-base sm:text-lg font-bold leading-tight">ระบบจัดการและติดตามผลการแข่งขันกีฬาสี 2026</h1>
+                  <p class="text-xs text-orange-200">โรงเรียนโกสัมพีวิทยา • ข้อมูลจาก Google Sheets (Online 100%)</p>
                 </div>
               </div>
 
-              <nav class="flex space-x-1 overflow-x-auto pb-2 custom-scrollbar text-xs sm:text-sm">
-                {[
-                  { id: 'home', label: '🏠 หน้าแรก' },
-                  { id: 'matches', label: '📅 ตารางแข่งขัน' },
-                  { id: 'results', label: '🏆 ผลการแข่งขัน' },
-                  { id: 'medals', label: '🥇 ตารางเหรียญรางวัล' },
-                  { id: 'albums', label: '📸 ภาพกิจกรรม & ดาวน์โหลด' },
-                  { id: 'teachers', label: '🧑🏻‍🏫 คณะครูและกรรมการ' },
-                  { id: 'staff', label: '🕺🏻 Staff ม.5' },
-                  { id: 'students', label: '😎 นักเรียนแยกคณะสี' },
-                  { id: 'reports', label: '📊 สรุปผล & พิมพ์รายงาน' },
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    class={`px-3 py-2 rounded-t-lg font-medium whitespace-nowrap transition-all ${
-                      activeTab === tab.id ? 'bg-white text-brand-blue font-bold shadow-md' : 'text-white/80 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    {tab.label}
+              <div class="flex items-center space-x-3">
+                <button onClick={fetchOnlineData} disabled={isSyncing} class="p-2 rounded bg-white/10 hover:bg-white/20 text-xs flex items-center space-x-1">
+                  <i data-lucide="refresh-cw" class={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`}></i>
+                  <span class="hidden sm:inline">{isSyncing ? 'กำลังโหลด...' : 'ดึงข้อมูล Google Sheets'}</span>
+                </button>
+
+                {isAdmin ? (
+                  <span class="text-xs bg-green-500/20 px-3 py-1 rounded-full border border-green-400 font-medium">Admin Mode</span>
+                ) : (
+                  <button onClick={() => setActiveTab('admin')} class="bg-brand-orange hover:bg-brand-orangeDark px-3 py-1.5 rounded text-xs font-bold shadow">
+                    เข้าสู่ระบบ
                   </button>
-                ))}
-              </nav>
+                )}
+              </div>
             </div>
+
+            {/* Nav Tabs */}
+            <nav class="max-w-7xl mx-auto px-4 flex space-x-1 overflow-x-auto text-xs pb-1 custom-scrollbar">
+              {[
+                { id: 'home', label: '🏠 หน้าแรก' },
+                { id: 'matches', label: '📅 ตารางแข่งขัน' },
+                { id: 'results', label: '🏆 ผลการแข่งขัน' },
+                { id: 'medals', label: '🥇 ตารางเหรียญ' },
+                { id: 'albums', label: '📸 ภาพกิจกรรม' },
+                { id: 'teachers', label: '🧑🏻‍🏫 คณะครู' },
+                { id: 'staff', label: '🕺🏻 Staff ม.5' },
+                { id: 'students', label: '😎 นักเรียน' },
+                { id: 'reports', label: '📊 รายงาน PDF/CSV' },
+                { id: 'admin', label: '🔒 Admin' }
+              ].map(t => (
+                <button key={t.id} onClick={() => setActiveTab(t.id)} class={`px-3 py-2 rounded-t font-semibold whitespace-nowrap ${activeTab === t.id ? 'bg-white text-brand-blue shadow' : 'text-white/80 hover:bg-white/10'}`}>
+                  {t.label}
+                </button>
+              ))}
+            </nav>
           </header>
 
-          <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+          {/* Main Body */}
+          <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
 
-            {/* TAB 1: HOME */}
-            {activeTab === 'home' && (
-              <div class="space-y-8 animate-fadeIn">
-                <div class="bg-gradient-to-br from-brand-blueDark via-brand-blue to-slate-900 rounded-2xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
-                  <div class="relative z-10 space-y-4">
-                    <span class="bg-brand-orange px-3 py-1 rounded-full text-xs font-semibold uppercase">Sports Day 2026</span>
-                    <h2 class="text-2xl sm:text-4xl font-extrabold">{siteTitle}</h2>
-                    <p class="text-blue-100 text-sm sm:text-base">{schoolName} • คณะสีฟ้า 💙 และ คณะสีแสด 🧡</p>
-                    <div class="pt-2 flex flex-wrap gap-3">
-                      <button onClick={() => setActiveTab('results')} class="bg-brand-orange hover:bg-brand-orangeDark text-white px-5 py-2.5 rounded-xl font-medium shadow transition">🏆 ดูผลการแข่งขันล่าสุด</button>
-                      <button onClick={() => setActiveTab('medals')} class="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-5 py-2.5 rounded-xl font-medium transition">🥇 สรุปเหรียญรางวัล</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-2xl p-6 shadow-lg">
-                    <div class="flex justify-between items-start">
-                      <div>
-                        <span class="text-xs bg-white/20 px-3 py-1 rounded-full uppercase font-semibold">Color House</span>
-                        <h3 class="text-3xl font-extrabold mt-1">คณะสีฟ้า 💙</h3>
-                      </div>
-                      <div class="text-right">
-                        <span class="text-4xl font-black">{totalScoreBlue}</span>
-                        <p class="text-xs text-blue-200">คะแนนรวม</p>
-                      </div>
-                    </div>
-                    <div class="mt-6 grid grid-cols-3 gap-2 text-center bg-white/10 rounded-xl p-3">
-                      <div><p class="text-xs text-yellow-300">🥇 ทอง</p><p class="text-xl font-bold">{medalData.find(m => m.color === 'สีฟ้า')?.gold || 0}</p></div>
-                      <div><p class="text-xs text-slate-200">🥈 เงิน</p><p class="text-xl font-bold">{medalData.find(m => m.color === 'สีฟ้า')?.silver || 0}</p></div>
-                      <div><p class="text-xs text-amber-400">🥉 ทองแดง</p><p class="text-xl font-bold">{medalData.find(m => m.color === 'สีฟ้า')?.bronze || 0}</p></div>
-                    </div>
-                  </div>
-
-                  <div class="bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl p-6 shadow-lg">
-                    <div class="flex justify-between items-start">
-                      <div>
-                        <span class="text-xs bg-white/20 px-3 py-1 rounded-full uppercase font-semibold">Color House</span>
-                        <h3 class="text-3xl font-extrabold mt-1">คณะสีแสด 🧡</h3>
-                      </div>
-                      <div class="text-right">
-                        <span class="text-4xl font-black">{totalScoreOrange}</span>
-                        <p class="text-xs text-orange-200">คะแนนรวม</p>
-                      </div>
-                    </div>
-                    <div class="mt-6 grid grid-cols-3 gap-2 text-center bg-white/10 rounded-xl p-3">
-                      <div><p class="text-xs text-yellow-300">🥇 ทอง</p><p class="text-xl font-bold">{medalData.find(m => m.color === 'สีแสด')?.gold || 0}</p></div>
-                      <div><p class="text-xs text-slate-200">🥈 เงิน</p><p class="text-xl font-bold">{medalData.find(m => m.color === 'สีแสด')?.silver || 0}</p></div>
-                      <div><p class="text-xs text-amber-400">🥉 ทองแดง</p><p class="text-xl font-bold">{medalData.find(m => m.color === 'สีแสด')?.bronze || 0}</p></div>
-                    </div>
-                  </div>
-                </div>
+            {isLoading ? (
+              <div class="text-center py-20 space-y-3">
+                <div class="w-10 h-10 border-4 border-brand-orange border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p class="text-sm font-semibold text-slate-600">กำลังเชื่อมต่อข้อมูลออนไลน์จาก Google Sheets...</p>
               </div>
-            )}
-
-            {/* TAB 2: MATCHES */}
-            {activeTab === 'matches' && (
-              <div class="space-y-6">
-                <div class="flex justify-between items-center">
-                  <h2 class="text-xl font-bold text-slate-800">📅 ตารางการแข่งขันทั้งหมด</h2>
-                  {isAdmin && (
-                    <button onClick={() => { setEditingItem({ id: `M${Date.now()}`, sport: '', category: '', time: '', location: '', status: 'waiting', winner: '-', score: '-' }); setModalType('match'); }} class="bg-brand-orange text-white px-4 py-2 rounded-xl text-xs font-semibold shadow">
-                      ➕ เพิ่มรายการแข่งขัน
-                    </button>
-                  )}
-                </div>
-
-                <div class="bg-white rounded-2xl shadow border overflow-hidden">
-                  <table class="w-full text-left text-xs sm:text-sm">
-                    <thead class="bg-slate-100 text-slate-700 uppercase font-semibold border-b">
-                      <tr>
-                        <th class="p-4">กีฬา / ประเภท</th>
-                        <th class="p-4">วัน-เวลา</th>
-                        <th class="p-4">สนาม</th>
-                        <th class="p-4">สถานะ</th>
-                        <th class="p-4">ผลการแข่งขัน</th>
-                        {isAdmin && <th class="p-4 text-center">จัดการ</th>}
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                      {matches.map(m => (
-                        <tr key={m.id} class="hover:bg-slate-50">
-                          <td class="p-4 font-semibold">{m.sport} <span class="text-xs text-slate-500">({m.category})</span></td>
-                          <td class="p-4 text-slate-600">{m.time}</td>
-                          <td class="p-4 text-slate-600">{m.location}</td>
-                          <td class="p-4">
-                            <span class={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                              m.status === 'live' ? 'bg-red-100 text-red-600 font-bold animate-pulse' :
-                              m.status === 'finished' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                            }`}>
-                              {m.status === 'live' ? '🔴 กำลังแข่งขัน' : m.status === 'finished' ? 'แข่งเสร็จสิ้น' : 'รอแข่งขัน'}
-                            </span>
-                          </td>
-                          <td class="p-4 font-medium">{m.score} {m.winner !== '-' && <span class="text-xs text-brand-blue font-bold">({m.winner})</span>}</td>
-                          {isAdmin && (
-                            <td class="p-4 text-center space-x-2">
-                              <button onClick={() => { setEditingItem(m); setModalType('match'); }} class="text-blue-600 hover:underline text-xs">✏️ แก้ไข</button>
-                              <button onClick={() => handleDeleteItem('match', m.id)} class="text-red-600 hover:underline text-xs">🗑️ ลบ</button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: RESULTS */}
-            {activeTab === 'results' && (
-              <div class="space-y-6">
-                <h2 class="text-xl font-bold text-slate-800">🏆 อัปเดตผลการแข่งขันล่าสุด</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {matches.filter(m => m.status === 'finished' || m.status === 'live').map(m => (
-                    <div key={m.id} class="bg-white rounded-2xl p-5 shadow border space-y-3">
-                      <div class="flex justify-between items-center border-b pb-2">
-                        <span class="font-bold text-slate-800">{m.sport} ({m.category})</span>
-                        <span class={`text-xs px-2 py-0.5 rounded-full font-bold ${m.status === 'live' ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-emerald-100 text-emerald-700'}`}>
-                          {m.status === 'live' ? '🔴 กำลังแข่ง' : 'จบการแข่งขัน'}
-                        </span>
-                      </div>
-                      <div class="flex justify-between items-center text-center py-2">
-                        <div class={`flex-1 p-2 rounded-xl ${m.winner === 'สีฟ้า' ? 'bg-blue-100 text-blue-900 border-2 border-blue-500' : 'bg-slate-50'}`}>
-                          <p class="text-xs font-bold">คณะสีฟ้า 💙</p>
-                        </div>
-                        <div class="px-4 font-black text-xl text-slate-700">{m.score}</div>
-                        <div class={`flex-1 p-2 rounded-xl ${m.winner === 'สีแสด' ? 'bg-orange-100 text-orange-900 border-2 border-orange-500' : 'bg-slate-50'}`}>
-                          <p class="text-xs font-bold">คณะสีแสด 🧡</p>
-                        </div>
-                      </div>
+            ) : (
+              <>
+                {/* HOME TAB */}
+                {activeTab === 'home' && (
+                  <div class="space-y-6">
+                    <div class="bg-gradient-to-br from-brand-blueDark via-brand-blue to-slate-900 rounded-2xl p-6 text-white shadow-lg">
+                      <h2 class="text-2xl font-extrabold">ระบบจัดการและติดตามผลการแข่งขันกีฬาสี 2026</h2>
+                      <p class="text-xs text-blue-100 mt-1">โรงเรียนโกสัมพีวิทยา • ข้อมูลซิงค์ออนไลน์เรียลไทม์กับ Google Sheets</p>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
-            {/* TAB 4: MEDALS */}
-            {activeTab === 'medals' && (
-              <div class="space-y-6">
-                <h2 class="text-xl font-bold text-slate-800">🥇 ตารางคะแนนเหรียญรางวัล</h2>
-                <div class="bg-white rounded-2xl shadow border overflow-hidden">
-                  <table class="w-full text-center text-xs sm:text-sm">
-                    <thead class="bg-slate-100 text-slate-700 font-semibold uppercase">
-                      <tr>
-                        <th class="p-4 text-left">คณะสี</th>
-                        <th class="p-4">🥇 ทอง (3)</th>
-                        <th class="p-4">🥈 เงิน (2)</th>
-                        <th class="p-4">🥉 ทองแดง (1)</th>
-                        <th class="p-4 font-bold text-brand-blue">คะแนนรวม</th>
-                        {isAdmin && <th class="p-4">จัดการ</th>}
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 font-medium">
-                      {medalData.map(m => (
-                        <tr key={m.color} class="hover:bg-slate-50">
-                          <td class="p-4 text-left font-bold text-base">{m.color === 'สีฟ้า' ? '💙 คณะสีฟ้า' : '🧡 คณะสีแสด'}</td>
-                          <td class="p-4 text-yellow-600 font-bold">{m.gold}</td>
-                          <td class="p-4 text-slate-500 font-bold">{m.silver}</td>
-                          <td class="p-4 text-amber-700 font-bold">{m.bronze}</td>
-                          <td class="p-4 font-extrabold text-brand-blue text-lg">{(m.gold*3)+(m.silver*2)+(m.bronze*1)}</td>
-                          {isAdmin && (
-                            <td class="p-4">
-                              <button onClick={() => { setEditingItem(m); setModalType('medal'); }} class="text-xs bg-brand-blue text-white px-3 py-1 rounded-lg">✏️ แก้ไข</button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 5: ALBUMS */}
-            {activeTab === 'albums' && (
-              <div class="space-y-6">
-                <div class="flex justify-between items-center">
-                  <h2 class="text-xl font-bold text-slate-800">📸 ภาพกิจกรรม & ดาวน์โหลด</h2>
-                  {isAdmin && (
-                    <button onClick={() => { setEditingItem({ id: `A${Date.now()}`, title: '', date: '', cover: '', driveUrl: '' }); setModalType('album'); }} class="bg-brand-orange text-white px-4 py-2 rounded-xl text-xs font-semibold shadow">
-                      ➕ เพิ่มอัลบั้มภาพ
-                    </button>
-                  )}
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {albums.map(a => (
-                    <div key={a.id} class="bg-white rounded-2xl shadow border overflow-hidden flex flex-col justify-between">
-                      <div class="relative h-48 bg-slate-100">
-                        {a.cover ? (
-                          <img src={formatDriveImageUrl(a.cover)} alt={a.title} class="w-full h-full object-cover" />
-                        ) : (
-                          <div class="w-full h-full flex items-center justify-center text-slate-400 text-3xl">🖼️</div>
-                        )}
-                        <span class="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full">{a.date}</span>
-                      </div>
-                      <div class="p-4 flex-grow"><h3 class="font-bold text-slate-800 text-sm">{a.title}</h3></div>
-                      <div class="p-3 bg-slate-50 border-t flex items-center justify-between">
-                        <a href={a.driveUrl} target="_blank" rel="noopener noreferrer" class="text-xs bg-brand-orange text-white px-3 py-1.5 rounded-lg font-semibold shadow">📂 เปิด Google Drive</a>
-                        {isAdmin && (
-                          <div class="space-x-1">
-                            <button onClick={() => { setEditingItem(a); setModalType('album'); }} class="text-xs text-blue-600">✏️</button>
-                            <button onClick={() => handleDeleteItem('album', a.id)} class="text-xs text-red-600">🗑️</button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-2xl p-6 shadow-md">
+                        <div class="flex justify-between items-start">
+                          <div>
+                            <span class="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-semibold">COLOR HOUSE</span>
+                            <h3 class="text-2xl font-extrabold mt-1">คณะสีฟ้า 💙</h3>
                           </div>
-                        )}
+                          <div class="text-right">
+                            <span class="text-3xl font-black">{totalScoreBlue}</span>
+                            <p class="text-xs text-blue-200">คะแนนรวม</p>
+                          </div>
+                        </div>
+                        <div class="mt-4 grid grid-cols-3 gap-2 text-center bg-white/10 rounded-xl p-2.5 text-xs">
+                          <div>🥇 ทอง: {medalData.find(m => m.color === 'สีฟ้า')?.gold || 0}</div>
+                          <div>🥈 เงิน: {medalData.find(m => m.color === 'สีฟ้า')?.silver || 0}</div>
+                          <div>🥉 ทองแดง: {medalData.find(m => m.color === 'สีฟ้า')?.bronze || 0}</div>
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl p-6 shadow-md">
+                        <div class="flex justify-between items-start">
+                          <div>
+                            <span class="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-semibold">COLOR HOUSE</span>
+                            <h3 class="text-2xl font-extrabold mt-1">คณะสีแสด 🧡</h3>
+                          </div>
+                          <div class="text-right">
+                            <span class="text-3xl font-black">{totalScoreOrange}</span>
+                            <p class="text-xs text-orange-200">คะแนนรวม</p>
+                          </div>
+                        </div>
+                        <div class="mt-4 grid grid-cols-3 gap-2 text-center bg-white/10 rounded-xl p-2.5 text-xs">
+                          <div>🥇 ทอง: {medalData.find(m => m.color === 'สีแสด')?.gold || 0}</div>
+                          <div>🥈 เงิน: {medalData.find(m => m.color === 'สีแสด')?.silver || 0}</div>
+                          <div>🥉 ทองแดง: {medalData.find(m => m.color === 'สีแสด')?.bronze || 0}</div>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  </div>
+                )}
 
-            {/* TAB 6: TEACHERS */}
-            {activeTab === 'teachers' && (
-              <div class="space-y-6">
-                <div class="flex justify-between items-center">
-                  <h2 class="text-xl font-bold text-slate-800">🧑🏻‍🏫 คณะครูและกรรมการ</h2>
-                  {isAdmin && (
-                    <button onClick={() => { setEditingItem({ id: `T${Date.now()}`, name: '', position: '', group: 'คณะกรรมการกลาง', photo: '', phone: '' }); setModalType('teacher'); }} class="bg-brand-orange text-white px-4 py-2 rounded-xl text-xs font-semibold shadow">
-                      ➕ เพิ่มคุณครู
-                    </button>
-                  )}
-                </div>
+                {/* MATCHES TAB */}
+                {activeTab === 'matches' && (
+                  <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                      <h2 class="text-lg font-bold">📅 ตารางแข่งขัน (ดึงจาก Google Sheets)</h2>
+                      {isAdmin && (
+                        <button onClick={() => { setEditingItem({ id: `M${Date.now()}`, sport: '', category: '', time: '', location: '', status: 'waiting', winner: '-', score: '-' }); setModalType('match'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold">
+                          ➕ เพิ่มรายการแข่ง
+                        </button>
+                      )}
+                    </div>
 
-                {['คณะกรรมการกลาง', 'คณะครูประจำคณะสีฟ้า', 'คณะครูประจำคณะสีแสด'].map(groupName => {
-                  const groupTeachers = teachers.filter(t => t.group === groupName);
-                  if (groupTeachers.length === 0) return null;
-                  return (
-                    <div key={groupName} class="space-y-3">
-                      <h3 class="text-base font-bold text-slate-800 border-l-4 border-brand-orange pl-3">{groupName}</h3>
-                      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {groupTeachers.map(t => (
-                          <div key={t.id} class="bg-white rounded-2xl p-4 shadow-sm border flex items-center space-x-4">
-                            <div class="w-16 h-16 rounded-full bg-slate-100 overflow-hidden flex-shrink-0 border">
-                              {t.photo ? <img src={formatDriveImageUrl(t.photo)} alt={t.name} class="w-full h-full object-cover" /> : <div class="w-full h-full flex items-center justify-center text-2xl">👤</div>}
-                            </div>
-                            <div class="flex-grow min-w-0">
-                              <h4 class="font-bold text-slate-800 text-sm truncate">{t.name}</h4>
-                              <p class="text-xs text-slate-500 truncate">{t.position}</p>
-                              <p class="text-xs text-brand-orange mt-1">📞 {t.phone || '-'}</p>
-                            </div>
+                    <div class="bg-white rounded-xl shadow border overflow-x-auto">
+                      <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-100 border-b font-bold">
+                          <tr>
+                            <th class="p-3">กีฬา/ประเภท</th>
+                            <th class="p-3">วัน-เวลา</th>
+                            <th class="p-3">สนาม</th>
+                            <th class="p-3">สถานะ</th>
+                            <th class="p-3">ผลการแข่ง</th>
+                            {isAdmin && <th class="p-3 text-center">จัดการ</th>}
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                          {matches.length === 0 ? (
+                            <tr><td colSpan="6" class="p-4 text-center text-slate-400">ยังไม่มีข้อมูลใน Google Sheets</td></tr>
+                          ) : (
+                            matches.map(m => (
+                              <tr key={m.id} class="hover:bg-slate-50">
+                                <td class="p-3 font-semibold">{m.sport} ({m.category})</td>
+                                <td class="p-3">{m.time}</td>
+                                <td class="p-3">{m.location}</td>
+                                <td class="p-3">
+                                  <span class={`px-2 py-0.5 rounded text-[10px] font-bold ${m.status==='live'?'bg-red-100 text-red-600':m.status==='finished'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}`}>
+                                    {m.status==='live'?'🔴 กำลังแข่ง':m.status==='finished'?'จบการแข่ง':'รอแข่ง'}
+                                  </span>
+                                </td>
+                                <td class="p-3">{m.score} {m.winner!=='-'&&`(${m.winner})`}</td>
+                                {isAdmin && (
+                                  <td class="p-3 text-center space-x-2">
+                                    <button onClick={() => { setEditingItem(m); setModalType('match'); }} class="text-blue-600">✏️</button>
+                                    <button onClick={() => handleDeleteItem('match', m.id)} class="text-red-600">🗑️</button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* RESULTS TAB */}
+                {activeTab === 'results' && (
+                  <div class="space-y-4">
+                    <h2 class="text-lg font-bold">🏆 อัปเดตผลการแข่งขัน</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {matches.filter(m => m.status === 'finished' || m.status === 'live').map(m => (
+                        <div key={m.id} class="bg-white rounded-xl p-4 shadow border space-y-2 text-xs">
+                          <div class="flex justify-between font-bold border-b pb-2">
+                            <span>{m.sport} ({m.category})</span>
+                            <span class={m.status==='live'?'text-red-600':'text-emerald-600'}>{m.status==='live'?'🔴 กำลังแข่ง':'จบการแข่งขัน'}</span>
+                          </div>
+                          <div class="flex justify-between text-center items-center py-2">
+                            <div class={`flex-1 p-2 rounded ${m.winner==='สีฟ้า'?'bg-blue-100 font-bold border border-blue-400':''}`}>คณะสีฟ้า 💙</div>
+                            <div class="px-4 font-bold text-base">{m.score}</div>
+                            <div class={`flex-1 p-2 rounded ${m.winner==='สีแสด'?'bg-orange-100 font-bold border border-orange-400':''}`}>คณะสีแสด 🧡</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* MEDALS TAB */}
+                {activeTab === 'medals' && (
+                  <div class="space-y-4">
+                    <h2 class="text-lg font-bold">🥇 ตารางสรุปเหรียญรางวัล</h2>
+                    <div class="bg-white rounded-xl shadow border overflow-x-auto">
+                      <table class="w-full text-center text-xs">
+                        <thead class="bg-slate-100 border-b font-bold">
+                          <tr><th class="p-3 text-left">คณะสี</th><th class="p-3">🥇 ทอง (3)</th><th class="p-3">🥈 เงิน (2)</th><th class="p-3">🥉 ทองแดง (1)</th><th class="p-3">คะแนนรวม</th>{isAdmin && <th class="p-3">จัดการ</th>}</tr>
+                        </thead>
+                        <tbody class="divide-y font-semibold">
+                          {medalData.map(m => (
+                            <tr key={m.color}>
+                              <td class="p-3 text-left font-bold">{m.color}</td>
+                              <td class="p-3 text-yellow-600">{m.gold}</td>
+                              <td class="p-3 text-slate-500">{m.silver}</td>
+                              <td class="p-3 text-amber-700">{m.bronze}</td>
+                              <td class="p-3 font-extrabold text-brand-blue text-sm">{(m.gold*3)+(m.silver*2)+(m.bronze*1)}</td>
+                              {isAdmin && (
+                                <td class="p-3">
+                                  <button onClick={() => { setEditingItem(m); setModalType('medal'); }} class="bg-brand-blue text-white px-2 py-1 rounded text-[10px]">✏️ ปรับเหรียญ</button>
+                                </td>
+                              )}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* ALBUMS TAB */}
+                {activeTab === 'albums' && (
+                  <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                      <h2 class="text-lg font-bold">📸 ภาพกิจกรรม & ลิงก์ Google Drive</h2>
+                      {isAdmin && (
+                        <button onClick={() => { setEditingItem({ id: `A${Date.now()}`, title: '', date: '', cover: '', driveUrl: '' }); setModalType('album'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold">
+                          ➕ เพิ่มอัลบั้ม
+                        </button>
+                      )}
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {albums.map(a => (
+                        <div key={a.id} class="bg-white rounded-xl shadow border overflow-hidden flex flex-col justify-between">
+                          <div class="h-40 bg-slate-100 relative">
+                            {a.cover ? <img src={formatDriveImageUrl(a.cover)} alt={a.title} class="w-full h-full object-cover" /> : <div class="w-full h-full flex items-center justify-center text-slate-300 text-2xl">🖼️</div>}
+                          </div>
+                          <div class="p-3"><h3 class="font-bold text-xs">{a.title}</h3></div>
+                          <div class="p-3 bg-slate-50 border-t flex justify-between items-center">
+                            <a href={a.driveUrl} target="_blank" rel="noopener noreferrer" class="text-xs bg-brand-orange text-white px-2.5 py-1 rounded font-semibold">📂 เปิด Google Drive</a>
                             {isAdmin && (
-                              <div class="flex flex-col space-y-1">
-                                <button onClick={() => { setEditingItem(t); setModalType('teacher'); }} class="text-xs text-blue-600">✏️</button>
-                                <button onClick={() => handleDeleteItem('teacher', t.id)} class="text-xs text-red-600">🗑️</button>
+                              <div class="space-x-1">
+                                <button onClick={() => { setEditingItem(a); setModalType('album'); }} class="text-xs text-blue-600">✏️</button>
+                                <button onClick={() => handleDeleteItem('album', a.id)} class="text-xs text-red-600">🗑️</button>
                               </div>
                             )}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* TAB 7: STAFF */}
-            {activeTab === 'staff' && (
-              <div class="space-y-6">
-                <div class="flex justify-between items-center">
-                  <h2 class="text-xl font-bold text-slate-800">🕺🏻 Staff ม.5</h2>
-                  {isAdmin && (
-                    <button onClick={() => { setEditingItem({ id: `ST${Date.now()}`, name: '', room: 'ม.5/1', color: 'สีฟ้า', photo: '' }); setModalType('staff'); }} class="bg-brand-orange text-white px-4 py-2 rounded-xl text-xs font-semibold shadow">
-                      ➕ เพิ่ม Staff ม.5
-                    </button>
-                  )}
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {staffM5.map(s => (
-                    <div key={s.id} class="bg-white rounded-2xl p-4 shadow-sm border flex items-center space-x-4">
-                      <div class="w-16 h-16 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 border">
-                        {s.photo ? <img src={formatDriveImageUrl(s.photo)} alt={s.name} class="w-full h-full object-cover" /> : <div class="w-full h-full flex items-center justify-center text-2xl">🕺🏻</div>}
-                      </div>
-                      <div class="flex-grow min-w-0">
-                        <span class={`text-[10px] px-2 py-0.5 rounded-full font-bold ${s.color === 'สีฟ้า' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{s.color}</span>
-                        <h4 class="font-bold text-slate-800 text-sm mt-1 truncate">{s.name}</h4>
-                        <p class="text-xs text-slate-500">ห้อง {s.room}</p>
-                      </div>
-                      {isAdmin && (
-                        <div class="flex flex-col space-y-1">
-                          <button onClick={() => { setEditingItem(s); setModalType('staff'); }} class="text-xs text-blue-600">✏️</button>
-                          <button onClick={() => handleDeleteItem('staff', s.id)} class="text-xs text-red-600">🗑️</button>
                         </div>
-                      )}
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 8: STUDENTS */}
-            {activeTab === 'students' && (
-              <div class="space-y-6">
-                <div class="flex justify-between items-center">
-                  <h2 class="text-xl font-bold text-slate-800">😎 ผังนักเรียนแยกตามห้อง</h2>
-                  {isAdmin && (
-                    <button onClick={() => { setEditingItem({ id: `S${Date.now()}`, room: 'ม.1/1', color: 'สีฟ้า', chartPhoto: '' }); setModalType('student'); }} class="bg-brand-orange text-white px-4 py-2 rounded-xl text-xs font-semibold shadow">
-                      ➕ เพิ่มผังห้อง
-                    </button>
-                  )}
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {students.map(st => (
-                    <div key={st.id} class="bg-white rounded-2xl shadow border p-4 space-y-3">
-                      <div class="flex justify-between items-center border-b pb-2">
-                        <span class="font-bold text-slate-800 text-sm">ห้อง {st.room}</span>
-                        <span class={`text-xs px-2.5 py-0.5 rounded-full font-bold ${st.color === 'สีฟ้า' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{st.color}</span>
-                      </div>
-                      <div class="h-48 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center">
-                        {st.chartPhoto ? (
-                          <img src={formatDriveImageUrl(st.chartPhoto)} alt={`ผังห้อง ${st.room}`} class="w-full h-full object-cover" />
-                        ) : (
-                          <span class="text-slate-400 text-xs">ยังไม่มีรูปผังรายชื่อ</span>
-                        )}
-                      </div>
-                      {isAdmin && (
-                        <div class="flex justify-end space-x-2 pt-2 border-t">
-                          <button onClick={() => { setEditingItem(st); setModalType('student'); }} class="text-xs text-blue-600">✏️ แก้ไข</button>
-                          <button onClick={() => handleDeleteItem('student', st.id)} class="text-xs text-red-600">🗑️ ลบ</button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 9: REPORTS */}
-            {activeTab === 'reports' && (
-              <div class="space-y-6">
-                <div class="flex justify-between items-center no-print">
-                  <h2 class="text-xl font-bold text-slate-800">📊 สรุปผล & พิมพ์รายงาน</h2>
-                  <div class="space-x-2">
-                    <button onClick={handleExportCSV} class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow">📄 ส่งออกไฟล์ CSV</button>
-                    <button onClick={handlePrintPDF} class="bg-brand-blue text-white px-4 py-2 rounded-xl text-xs font-semibold shadow">🖨️ บันทึกเป็น PDF</button>
-                  </div>
-                </div>
-
-                <div id="report-print-area" class="bg-white rounded-2xl p-8 shadow border space-y-6">
-                  <div class="text-center border-b pb-4">
-                    <h1 class="text-2xl font-bold text-slate-900">{siteTitle}</h1>
-                    <p class="text-sm text-slate-600">{schoolName}</p>
-                  </div>
-                  <div class="space-y-3">
-                    <h3 class="font-bold text-slate-800 text-sm">🥇 สรุปตารางเหรียญรางวัล</h3>
-                    <table class="w-full text-center text-xs border">
-                      <thead class="bg-slate-100 border-b">
-                        <tr><th class="p-2 text-left">คณะสี</th><th class="p-2">ทอง</th><th class="p-2">เงิน</th><th class="p-2">ทองแดง</th><th class="p-2">คะแนนรวม</th></tr>
-                      </thead>
-                      <tbody>
-                        {medalData.map(m => (
-                          <tr key={m.color} class="border-b">
-                            <td class="p-2 text-left font-bold">{m.color}</td>
-                            <td class="p-2">{m.gold}</td><td class="p-2">{m.silver}</td><td class="p-2">{m.bronze}</td>
-                            <td class="p-2 font-bold text-brand-blue">{(m.gold*3)+(m.silver*2)+(m.bronze*1)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 10: ADMIN PORTAL */}
-            {activeTab === 'admin' && (
-              <div class="max-w-md mx-auto my-12 bg-white rounded-2xl p-8 shadow-xl border">
-                {!isAdmin ? (
-                  <form onSubmit={handleLogin} class="space-y-6">
-                    <div class="text-center space-y-2">
-                      <div class="w-16 h-16 bg-brand-orangeLight text-brand-orange rounded-full flex items-center justify-center mx-auto text-2xl font-bold">🔒</div>
-                      <h2 class="text-xl font-bold text-slate-800">เข้าสู่ระบบเจ้าหน้าที่ (Admin)</h2>
-                    </div>
-                    {loginError && <p class="text-xs text-red-600 bg-red-50 p-2.5 rounded-lg text-center font-medium">{loginError}</p>}
-                    <div>
-                      <input type="password" maxLength="6" placeholder="••••••" value={pinInput} onChange={(e) => setPinInput(e.target.value)} class="w-full text-center text-2xl tracking-widest py-3 border rounded-xl focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                    </div>
-                    <button type="submit" class="w-full bg-brand-orange text-white py-3 rounded-xl font-bold shadow-md">เข้าสู่ระบบ</button>
-                  </form>
-                ) : (
-                  <div class="text-center space-y-4">
-                    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl">✅</div>
-                    <h2 class="text-lg font-bold text-slate-800">ท่านอยู่ในระบบเจ้าหน้าที่เรียบร้อยแล้ว</h2>
-                    <button onClick={() => setIsAdmin(false)} class="w-full bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-semibold">ออกจากระบบ</button>
                   </div>
                 )}
-              </div>
+
+                {/* TEACHERS TAB */}
+                {activeTab === 'teachers' && (
+                  <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                      <h2 class="text-lg font-bold">🧑🏻‍🏫 รายชื่อคุณครูและคณะกรรมการ</h2>
+                      {isAdmin && (
+                        <button onClick={() => { setEditingItem({ id: `T${Date.now()}`, name: '', position: '', group: 'คณะกรรมการกลาง', photo: '', phone: '' }); setModalType('teacher'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold">
+                          ➕ เพิ่มครู
+                        </button>
+                      )}
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {teachers.map(t => (
+                        <div key={t.id} class="bg-white rounded-xl p-3 shadow border flex items-center space-x-3">
+                          <div class="w-14 h-14 rounded-full bg-slate-100 overflow-hidden flex-shrink-0 border">
+                            {t.photo ? <img src={formatDriveImageUrl(t.photo)} alt={t.name} class="w-full h-full object-cover" /> : <div class="w-full h-full flex items-center justify-center text-xl">👤</div>}
+                          </div>
+                          <div class="flex-grow min-w-0 text-xs">
+                            <h4 class="font-bold truncate">{t.name}</h4>
+                            <p class="text-slate-500 truncate">{t.position}</p>
+                            <p class="text-brand-orange mt-0.5">📞 {t.phone||'-'}</p>
+                          </div>
+                          {isAdmin && (
+                            <div class="flex flex-col space-y-1">
+                              <button onClick={() => { setEditingItem(t); setModalType('teacher'); }} class="text-xs text-blue-600">✏️</button>
+                              <button onClick={() => handleDeleteItem('teacher', t.id)} class="text-xs text-red-600">🗑️</button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* STAFF TAB */}
+                {activeTab === 'staff' && (
+                  <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                      <h2 class="text-lg font-bold">🕺🏻 Staff ม.5</h2>
+                      {isAdmin && (
+                        <button onClick={() => { setEditingItem({ id: `ST${Date.now()}`, name: '', room: 'ม.5/1', color: 'สีฟ้า', photo: '' }); setModalType('staff'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold">
+                          ➕ เพิ่ม Staff
+                        </button>
+                      )}
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {staffM5.map(s => (
+                        <div key={s.id} class="bg-white rounded-xl p-3 shadow border flex items-center space-x-3">
+                          <div class="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 border">
+                            {s.photo ? <img src={formatDriveImageUrl(s.photo)} alt={s.name} class="w-full h-full object-cover" /> : <div class="w-full h-full flex items-center justify-center text-xl">🕺🏻</div>}
+                          </div>
+                          <div class="flex-grow min-w-0 text-xs">
+                            <span class={`text-[10px] px-2 py-0.5 rounded font-bold ${s.color==='สีฟ้า'?'bg-blue-100 text-blue-700':'bg-orange-100 text-orange-700'}`}>{s.color}</span>
+                            <h4 class="font-bold truncate mt-1">{s.name}</h4>
+                            <p class="text-slate-500">ห้อง {s.room}</p>
+                          </div>
+                          {isAdmin && (
+                            <div class="flex flex-col space-y-1">
+                              <button onClick={() => { setEditingItem(s); setModalType('staff'); }} class="text-xs text-blue-600">✏️</button>
+                              <button onClick={() => handleDeleteItem('staff', s.id)} class="text-xs text-red-600">🗑️</button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* STUDENTS TAB */}
+                {activeTab === 'students' && (
+                  <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                      <h2 class="text-lg font-bold">😎 ผังนักเรียนแยกตามห้อง</h2>
+                      {isAdmin && (
+                        <button onClick={() => { setEditingItem({ id: `S${Date.now()}`, room: 'ม.1/1', color: 'สีฟ้า', chartPhoto: '' }); setModalType('student'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold">
+                          ➕ เพิ่มผังห้อง
+                        </button>
+                      )}
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {students.map(st => (
+                        <div key={st.id} class="bg-white rounded-xl shadow border p-3 space-y-2">
+                          <div class="flex justify-between items-center border-b pb-1">
+                            <span class="font-bold text-xs">ห้อง {st.room}</span>
+                            <span class={`text-[10px] px-2 py-0.5 rounded font-bold ${st.color==='สีฟ้า'?'bg-blue-100 text-blue-700':'bg-orange-100 text-orange-700'}`}>{st.color}</span>
+                          </div>
+                          <div class="h-40 bg-slate-100 rounded overflow-hidden flex items-center justify-center">
+                            {st.chartPhoto ? <img src={formatDriveImageUrl(st.chartPhoto)} alt={st.room} class="w-full h-full object-cover" /> : <span class="text-xs text-slate-400">ไม่มีรูปผัง</span>}
+                          </div>
+                          {isAdmin && (
+                            <div class="flex justify-end space-x-2 pt-1 border-t">
+                              <button onClick={() => { setEditingItem(st); setModalType('student'); }} class="text-xs text-blue-600">✏️</button>
+                              <button onClick={() => handleDeleteItem('student', st.id)} class="text-xs text-red-600">🗑️</button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* REPORTS TAB */}
+                {activeTab === 'reports' && (
+                  <div class="space-y-4">
+                    <div class="flex justify-between items-center no-print">
+                      <h2 class="text-lg font-bold">📊 สรุปผล & พิมพ์รายงาน</h2>
+                      <div class="space-x-2">
+                        <button onClick={handleExportCSV} class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-semibold">📄 CSV</button>
+                        <button onClick={handlePrintPDF} class="bg-brand-blue text-white px-3 py-1.5 rounded text-xs font-semibold">🖨️ PDF</button>
+                      </div>
+                    </div>
+                    <div id="report-print-area" class="bg-white rounded-xl p-6 shadow border space-y-4">
+                      <div class="text-center border-b pb-3">
+                        <h1 class="text-xl font-bold">รายงานสรุปผลการแข่งขันกีฬาสี 2026</h1>
+                        <p class="text-xs text-slate-500">โรงเรียนโกสัมพีวิทยา</p>
+                      </div>
+                      <div class="space-y-2">
+                        <h3 class="font-bold text-xs">🥇 สรุปตารางเหรียญรางวัล</h3>
+                        <table class="w-full text-center text-xs border">
+                          <thead class="bg-slate-100 border-b">
+                            <tr><th class="p-1 text-left">คณะสี</th><th class="p-1">ทอง</th><th class="p-1">เงิน</th><th class="p-1">ทองแดง</th><th class="p-1">คะแนน</th></tr>
+                          </thead>
+                          <tbody>
+                            {medalData.map(m => (
+                              <tr key={m.color} class="border-b">
+                                <td class="p-1 text-left font-bold">{m.color}</td>
+                                <td class="p-1">{m.gold}</td><td class="p-1">{m.silver}</td><td class="p-1">{m.bronze}</td>
+                                <td class="p-1 font-bold text-brand-blue">{(m.gold*3)+(m.silver*2)+(m.bronze*1)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ADMIN LOGIN TAB */}
+                {activeTab === 'admin' && (
+                  <div class="max-w-md mx-auto my-10 bg-white rounded-xl p-6 shadow border">
+                    {!isAdmin ? (
+                      <form onSubmit={handleLogin} class="space-y-4">
+                        <h2 class="text-base font-bold text-center">🔒 เข้าสู่ระบบแอดมิน (PIN: 161616)</h2>
+                        {loginError && <p class="text-xs text-red-600 text-center">{loginError}</p>}
+                        <input type="password" maxLength="6" placeholder="••••••" value={pinInput} onChange={e => setPinInput(e.target.value)} class="w-full text-center text-2xl p-2 border rounded tracking-widest" />
+                        <button type="submit" class="w-full bg-brand-orange text-white py-2 rounded font-bold text-xs">เข้าสู่ระบบ</button>
+                      </form>
+                    ) : (
+                      <div class="text-center space-y-3">
+                        <p class="text-green-600 font-bold text-xs">✅ ท่านอยู่ในสถานะแอดมิน (บันทึกลง Google Sheets สด)</p>
+                        <button onClick={() => setIsAdmin(false)} class="bg-slate-200 text-slate-700 px-3 py-1.5 rounded text-xs font-bold">ออกจากระบบ</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
 
           </main>
 
           {/* EDIT MODAL POPUP */}
           {modalType && editingItem && (
-            <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-              <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-                <h3 class="text-lg font-bold text-slate-800 border-b pb-2">✏️ แก้ไขข้อมูล / วางลิงก์รูปภาพ Google Drive</h3>
+            <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div class="bg-white rounded-xl max-w-md w-full p-5 shadow-xl space-y-3 text-xs">
+                <h3 class="font-bold border-b pb-2 text-sm">✏️ แก้ไขข้อมูล (บันทึกลง Google Sheets)</h3>
 
-                <div class="space-y-3 text-xs">
-                  {modalType === 'match' && (
-                    <>
-                      <div><label class="font-bold">ชื่อกีฬา</label><input type="text" value={editingItem.sport} onChange={e => setEditingItem({...editingItem, sport: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div><label class="font-bold">ประเภท</label><input type="text" value={editingItem.category} onChange={e => setEditingItem({...editingItem, category: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div><label class="font-bold">วัน-เวลา</label><input type="text" value={editingItem.time} onChange={e => setEditingItem({...editingItem, time: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div><label class="font-bold">สถานที่</label><input type="text" value={editingItem.location} onChange={e => setEditingItem({...editingItem, location: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div>
-                        <label class="font-bold">สถานะ</label>
-                        <select value={editingItem.status} onChange={e => setEditingItem({...editingItem, status: e.target.value})} class="w-full p-2 border rounded-lg mt-1">
-                          <option value="waiting">รอแข่งขัน</option>
-                          <option value="live">กำลังแข่งขัน</option>
-                          <option value="finished">แข่งเสร็จสิ้น</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label class="font-bold">ผู้ชนะ</label>
-                        <select value={editingItem.winner} onChange={e => setEditingItem({...editingItem, winner: e.target.value})} class="w-full p-2 border rounded-lg mt-1">
-                          <option value="-">-</option>
-                          <option value="สีฟ้า">สีฟ้า</option>
-                          <option value="สีแสด">สีแสด</option>
-                        </select>
-                      </div>
-                      <div><label class="font-bold">สกอร์/ผลแข่งขัน</label><input type="text" value={editingItem.score} onChange={e => setEditingItem({...editingItem, score: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                    </>
-                  )}
+                {modalType === 'match' && (
+                  <>
+                    <div><label class="font-bold">กีฬา</label><input type="text" value={editingItem.sport} onChange={e => setEditingItem({...editingItem, sport: e.target.value})} class="w-full p-1.5 border rounded mt-0.5"/></div>
+                    <div><label class="font-bold">ประเภท</label><input type="text" value={editingItem.category} onChange={e => setEditingItem({...editingItem, category: e.target.value})} class="w-full p-1.5 border rounded mt-0.5"/></div>
+                    <div><label class="font-bold">วัน-เวลา</label><input type="text" value={editingItem.time} onChange={e => setEditingItem({...editingItem, time: e.target.value})} class="w-full p-1.5 border rounded mt-0.5"/></div>
+                    <div><label class="font-bold">สถานที่</label><input type="text" value={editingItem.location} onChange={e => setEditingItem({...editingItem, location: e.target.value})} class="w-full p-1.5 border rounded mt-0.5"/></div>
+                    <div>
+                      <label class="font-bold">สถานะ</label>
+                      <select value={editingItem.status} onChange={e => setEditingItem({...editingItem, status: e.target.value})} class="w-full p-1.5 border rounded mt-0.5">
+                        <option value="waiting">รอแข่งขัน</option>
+                        <option value="live">กำลังแข่งขัน</option>
+                        <option value="finished">แข่งเสร็จสิ้น</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="font-bold">ผู้ชนะ</label>
+                      <select value={editingItem.winner} onChange={e => setEditingItem({...editingItem, winner: e.target.value})} class="w-full p-1.5 border rounded mt-0.5">
+                        <option value="-">-</option>
+                        <option value="สีฟ้า">สีฟ้า</option>
+                        <option value="สีแสด">สีแสด</option>
+                      </select>
+                    </div>
+                    <div><label class="font-bold">สกอร์</label><input type="text" value={editingItem.score} onChange={e => setEditingItem({...editingItem, score: e.target.value})} class="w-full p-1.5 border rounded mt-0.5"/></div>
+                  </>
+                )}
 
-                  {modalType === 'medal' && (
-                    <>
-                      <div><label class="font-bold">🥇 เหรียญทอง</label><input type="number" value={editingItem.gold} onChange={e => setEditingItem({...editingItem, gold: parseInt(e.target.value)||0})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div><label class="font-bold">🥈 เหรียญเงิน</label><input type="number" value={editingItem.silver} onChange={e => setEditingItem({...editingItem, silver: parseInt(e.target.value)||0})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div><label class="font-bold">🥉 เหรียญทองแดง</label><input type="number" value={editingItem.bronze} onChange={e => setEditingItem({...editingItem, bronze: parseInt(e.target.value)||0})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                    </>
-                  )}
+                {modalType === 'medal' && (
+                  <>
+                    <div><label class="font-bold">🥇 ทอง</label><input type="number" value={editingItem.gold} onChange={e => setEditingItem({...editingItem, gold: parseInt(e.target.value)||0})} class="w-full p-1.5 border rounded mt-0.5"/></div>
+                    <div><label class="font-bold">🥈 เงิน</label><input type="number" value={editingItem.silver} onChange={e => setEditingItem({...editingItem, silver: parseInt(e.target.value)||0})} class="w-full p-1.5 border rounded mt-0.5"/></div>
+                    <div><label class="font-bold">🥉 ทองแดง</label><input type="number" value={editingItem.bronze} onChange={e => setEditingItem({...editingItem, bronze: parseInt(e.target.value)||0})} class="w-full p-1.5 border rounded mt-0.5"/></div>
+                  </>
+                )}
 
-                  {modalType === 'teacher' && (
-                    <>
-                      <div><label class="font-bold">ชื่อ-นามสกุล</label><input type="text" value={editingItem.name} onChange={e => setEditingItem({...editingItem, name: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div><label class="font-bold">ตำแหน่ง</label><input type="text" value={editingItem.position} onChange={e => setEditingItem({...editingItem, position: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div>
-                        <label class="font-bold">กลุ่ม/สังกัด</label>
-                        <select value={editingItem.group} onChange={e => setEditingItem({...editingItem, group: e.target.value})} class="w-full p-2 border rounded-lg mt-1">
-                          <option value="คณะกรรมการกลาง">คณะกรรมการกลาง</option>
-                          <option value="คณะครูประจำคณะสีฟ้า">คณะครูประจำคณะสีฟ้า</option>
-                          <option value="คณะครูประจำคณะสีแสด">คณะครูประจำคณะสีแสด</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label class="font-bold">ลิงก์รูปภาพ Google Drive</label>
-                        <input type="text" value={editingItem.photo} onChange={e => setEditingItem({...editingItem, photo: e.target.value})} class="w-full p-2 border rounded-lg mt-1" placeholder="วางลิงก์ Google Drive ที่นี่" />
-                      </div>
-                    </>
-                  )}
+                {(modalType === 'teacher' || modalType === 'staff' || modalType === 'student' || modalType === 'album') && (
+                  <>
+                    {modalType === 'teacher' && <div><label class="font-bold">ชื่อ-นามสกุล</label><input type="text" value={editingItem.name} onChange={e => setEditingItem({...editingItem, name: e.target.value})} class="w-full p-1.5 border rounded mt-0.5"/></div>}
+                    {modalType === 'staff' && <div><label class="font-bold">ชื่อ Staff</label><input type="text" value={editingItem.name} onChange={e => setEditingItem({...editingItem, name: e.target.value})} class="w-full p-1.5 border rounded mt-0.5"/></div>}
+                    {modalType === 'student' && <div><label class="font-bold">ห้องเรียน</label><input type="text" value={editingItem.room} onChange={e => setEditingItem({...editingItem, room: e.target.value})} class="w-full p-1.5 border rounded mt-0.5"/></div>}
+                    {modalType === 'album' && <div><label class="font-bold">ชื่ออัลบั้ม</label><input type="text" value={editingItem.title} onChange={e => setEditingItem({...editingItem, title: e.target.value})} class="w-full p-1.5 border rounded mt-0.5"/></div>}
 
-                  {modalType === 'staff' && (
-                    <>
-                      <div><label class="font-bold">ชื่อ Staff</label><input type="text" value={editingItem.name} onChange={e => setEditingItem({...editingItem, name: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div>
-                        <label class="font-bold">ห้องเรียน</label>
-                        <select value={editingItem.room} onChange={e => setEditingItem({...editingItem, room: e.target.value})} class="w-full p-2 border rounded-lg mt-1">
-                          <option value="ม.5/1">ม.5/1</option>
-                          <option value="ม.5/2">ม.5/2</option>
-                          <option value="ม.5/3">ม.5/3</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label class="font-bold">คณะสี</label>
-                        <select value={editingItem.color} onChange={e => setEditingItem({...editingItem, color: e.target.value})} class="w-full p-2 border rounded-lg mt-1">
-                          <option value="สีฟ้า">สีฟ้า</option>
-                          <option value="สีแสด">สีแสด</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label class="font-bold">ลิงก์รูปภาพ Google Drive</label>
-                        <input type="text" value={editingItem.photo} onChange={e => setEditingItem({...editingItem, photo: e.target.value})} class="w-full p-2 border rounded-lg mt-1" placeholder="วางลิงก์ Google Drive ที่นี่" />
-                      </div>
-                    </>
-                  )}
+                    <div>
+                      <label class="font-bold">วางลิงก์รูปภาพ Google Drive</label>
+                      <input 
+                        type="text" 
+                        value={modalType==='student'?editingItem.chartPhoto:modalType==='album'?editingItem.cover:editingItem.photo} 
+                        onChange={e => {
+                          const val = e.target.value;
+                          if (modalType==='student') setEditingItem({...editingItem, chartPhoto: val});
+                          else if (modalType==='album') setEditingItem({...editingItem, cover: val});
+                          else setEditingItem({...editingItem, photo: val});
+                        }} 
+                        class="w-full p-1.5 border rounded mt-0.5" 
+                        placeholder="วางลิงก์ Google Drive"
+                      />
+                    </div>
+                  </>
+                )}
 
-                  {modalType === 'student' && (
-                    <>
-                      <div><label class="font-bold">ห้องเรียน</label><input type="text" value={editingItem.room} onChange={e => setEditingItem({...editingItem, room: e.target.value})} class="w-full p-2 border rounded-lg mt-1" placeholder="เช่น ม.1/1" /></div>
-                      <div>
-                        <label class="font-bold">คณะสี</label>
-                        <select value={editingItem.color} onChange={e => setEditingItem({...editingItem, color: e.target.value})} class="w-full p-2 border rounded-lg mt-1">
-                          <option value="สีฟ้า">สีฟ้า</option>
-                          <option value="สีแสด">สีแสด</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label class="font-bold">ลิงก์รูปผังรายชื่อ Google Drive</label>
-                        <input type="text" value={editingItem.chartPhoto} onChange={e => setEditingItem({...editingItem, chartPhoto: e.target.value})} class="w-full p-2 border rounded-lg mt-1" placeholder="วางลิงก์ Google Drive ที่นี่" />
-                      </div>
-                    </>
-                  )}
-
-                  {modalType === 'album' && (
-                    <>
-                      <div><label class="font-bold">ชื่ออัลบั้ม</label><input type="text" value={editingItem.title} onChange={e => setEditingItem({...editingItem, title: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div><label class="font-bold">วันที่</label><input type="date" value={editingItem.date} onChange={e => setEditingItem({...editingItem, date: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div><label class="font-bold">ลิงก์โฟลเดอร์ Google Drive รวมรูป</label><input type="text" value={editingItem.driveUrl} onChange={e => setEditingItem({...editingItem, driveUrl: e.target.value})} class="w-full p-2 border rounded-lg mt-1" /></div>
-                      <div>
-                        <label class="font-bold">ลิงก์รูปปกอัลบั้ม Google Drive</label>
-                        <input type="text" value={editingItem.cover} onChange={e => setEditingItem({...editingItem, cover: e.target.value})} class="w-full p-2 border rounded-lg mt-1" placeholder="วางลิงก์ Google Drive ที่นี่" />
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div class="flex justify-end space-x-2 border-t pt-3">
-                  <button onClick={() => { setModalType(null); setEditingItem(null); }} class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">ยกเลิก</button>
-                  <button onClick={() => handleSaveItem(modalType, editingItem)} class="px-4 py-2 bg-brand-orange text-white rounded-xl text-xs font-semibold shadow">บันทึกข้อมูล</button>
+                <div class="flex justify-end space-x-2 border-t pt-2">
+                  <button onClick={() => { setModalType(null); setEditingItem(null); }} class="px-3 py-1 bg-slate-200 rounded font-bold">ยกเลิก</button>
+                  <button onClick={() => handleSaveItem(modalType, editingItem)} class="px-3 py-1 bg-brand-orange text-white rounded font-bold">บันทึกสดลง Google Sheets</button>
                 </div>
               </div>
             </div>
           )}
 
-          <footer class="bg-slate-900 text-slate-400 py-6 text-center text-xs border-t border-slate-800 no-print mt-12">
-            <p>© 2026 โรงเรียนโกสัมพีวิทยา • คณะสีฟ้า 💙 & คณะสีแสด 🧡</p>
-            <p class="text-slate-500 mt-1">Sports Day Management System • Powered by React & Google Sheets API</p>
+          <footer class="bg-slate-900 text-slate-400 py-4 text-center text-xs border-t no-print mt-8">
+            <p>© 2026 โรงเรียนโกสัมพีวิทยา • Sports Day Management System (Google Sheets API 100%)</p>
           </footer>
 
         </div>
