@@ -18,6 +18,7 @@
               blueDark: '#003B73',
               orange: '#FF6B00',
               orangeDark: '#C85200',
+              orangeLight: '#FFF0E6'
             }
           },
           fontFamily: {
@@ -50,17 +51,17 @@
     @media print { .no-print { display: none !important; } }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased">
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-orange-500 selection:text-white">
 
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
-    // Google Apps Script Web App Endpoint
+    // Google Apps Script Web App Endpoint URL (Google Sheets ID: 1orXaAGiTgG7xHaslaEf_H9On0eubN8JHfR21OQswLCo)
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwD38weG3TQCxNcUAU6u5-ZF7YLvuKbmJsLkuDvb68oyvyntutyxolNH1l5arioswh55Q/exec";
 
-    // Convert Google Drive Links to Direct Image URLs
+    // Helper: Convert Google Drive Viewing Links into Direct Image Link URLs
     const formatDriveImageUrl = (url) => {
       if (!url) return '';
       if (url.includes('lh3.googleusercontent.com/d/')) return url;
@@ -79,7 +80,7 @@
       const [isLoading, setIsLoading] = useState(true);
       const [isSyncing, setIsSyncing] = useState(false);
 
-      // ONLINE DATA STATES (Empty initial states - purely populated from Google Sheets)
+      // Online Data States (Synced 100% with Google Sheets)
       const [matches, setMatches] = useState([]);
       const [medalData, setMedalData] = useState([
         { color: "สีฟ้า", gold: 0, silver: 0, bronze: 0 },
@@ -93,7 +94,7 @@
       const [modalType, setModalType] = useState(null);
       const [editingItem, setEditingItem] = useState(null);
 
-      // Fetch Pure Online Data on Page Load
+      // Initial Load from Google Sheets
       useEffect(() => {
         fetchOnlineData();
       }, []);
@@ -102,7 +103,7 @@
         if (window.lucide) window.lucide.createIcons();
       });
 
-      // Fetch ALL Data directly from Google Sheets
+      // Fetch Real-time Online Data
       const fetchOnlineData = async () => {
         setIsSyncing(true);
         try {
@@ -124,14 +125,14 @@
           if (data.Students) setStudents(data.Students);
           if (data.Albums) setAlbums(data.Albums);
         } catch (err) {
-          console.error("เกิดข้อผิดพลาดในการดึงข้อมูลจาก Google Sheets:", err);
-        } finally {
+          console.error("Fetch Google Sheets Error:", err);
+        } fontally: {
           setIsSyncing(false);
           setIsLoading(false);
         }
       };
 
-      // Save Data directly to Google Sheets & Reload Real-time
+      // Save Data to Google Sheets and Reload Real-time State
       const saveOnlineData = async (sheetName, updatedData) => {
         setIsSyncing(true);
         try {
@@ -139,10 +140,9 @@
             method: "POST",
             body: JSON.stringify({ action: sheetName, data: updatedData })
           });
-          // Re-fetch online data after saving to guarantee 100% sync
           await fetchOnlineData();
         } catch (err) {
-          alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลไปยัง Google Sheets");
+          alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลลง Google Sheets");
         } finally {
           setIsSyncing(false);
         }
@@ -196,7 +196,7 @@
       };
 
       const handleDeleteItem = async (type, id) => {
-        if (!confirm("ต้องการลบรายการนี้ใน Google Sheets หรือไม่?")) return;
+        if (!confirm("ยืนยันการลบรายการนี้ใน Google Sheets?")) return;
         let updatedList = [];
         let sheetName = "";
 
@@ -246,30 +246,30 @@
           <header class="bg-gradient-to-r from-brand-blueDark via-brand-blue to-brand-orange text-white shadow-lg sticky top-0 z-40 no-print">
             <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
               <div class="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-                <div class="w-10 h-10 rounded-full bg-white text-brand-blue flex items-center justify-center font-bold text-lg">🏆</div>
+                <div class="w-10 h-10 rounded-full bg-white text-brand-blue flex items-center justify-center font-bold text-lg shadow">🏆</div>
                 <div>
                   <h1 class="text-base sm:text-lg font-bold leading-tight">ระบบจัดการและติดตามผลการแข่งขันกีฬาสี 2026</h1>
-                  <p class="text-xs text-orange-200">โรงเรียนโกสัมพีวิทยา • ข้อมูลจาก Google Sheets (Online 100%)</p>
+                  <p class="text-xs text-orange-200">โรงเรียนโกสัมพีวิทยา • Google Sheets Online Sync 100%</p>
                 </div>
               </div>
 
               <div class="flex items-center space-x-3">
                 <button onClick={fetchOnlineData} disabled={isSyncing} class="p-2 rounded bg-white/10 hover:bg-white/20 text-xs flex items-center space-x-1">
                   <i data-lucide="refresh-cw" class={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`}></i>
-                  <span class="hidden sm:inline">{isSyncing ? 'กำลังโหลด...' : 'ดึงข้อมูล Google Sheets'}</span>
+                  <span class="hidden sm:inline">{isSyncing ? 'กำลังโหลด...' : 'ซิงค์ Google Sheets'}</span>
                 </button>
 
                 {isAdmin ? (
                   <span class="text-xs bg-green-500/20 px-3 py-1 rounded-full border border-green-400 font-medium">Admin Mode</span>
                 ) : (
                   <button onClick={() => setActiveTab('admin')} class="bg-brand-orange hover:bg-brand-orangeDark px-3 py-1.5 rounded text-xs font-bold shadow">
-                    เข้าสู่ระบบ
+                    เข้าสู่ระบบเจ้าหน้าที่
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Nav Tabs */}
+            {/* Navigation Tabs */}
             <nav class="max-w-7xl mx-auto px-4 flex space-x-1 overflow-x-auto text-xs pb-1 custom-scrollbar">
               {[
                 { id: 'home', label: '🏠 หน้าแรก' },
@@ -290,7 +290,7 @@
             </nav>
           </header>
 
-          {/* Main Body */}
+          {/* Main Content Area */}
           <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
 
             {isLoading ? (
@@ -300,12 +300,12 @@
               </div>
             ) : (
               <>
-                {/* HOME TAB */}
+                {/* TAB 1: HOME */}
                 {activeTab === 'home' && (
                   <div class="space-y-6">
                     <div class="bg-gradient-to-br from-brand-blueDark via-brand-blue to-slate-900 rounded-2xl p-6 text-white shadow-lg">
                       <h2 class="text-2xl font-extrabold">ระบบจัดการและติดตามผลการแข่งขันกีฬาสี 2026</h2>
-                      <p class="text-xs text-blue-100 mt-1">โรงเรียนโกสัมพีวิทยา • ข้อมูลซิงค์ออนไลน์เรียลไทม์กับ Google Sheets</p>
+                      <p class="text-xs text-blue-100 mt-1">โรงเรียนโกสัมพีวิทยา • คณะสีฟ้า 💙 และ คณะสีแสด 🧡</p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -348,13 +348,13 @@
                   </div>
                 )}
 
-                {/* MATCHES TAB */}
+                {/* TAB 2: MATCHES */}
                 {activeTab === 'matches' && (
                   <div class="space-y-4">
                     <div class="flex justify-between items-center">
-                      <h2 class="text-lg font-bold">📅 ตารางแข่งขัน (ดึงจาก Google Sheets)</h2>
+                      <h2 class="text-lg font-bold text-slate-800">📅 ตารางการแข่งขันทั้งหมด</h2>
                       {isAdmin && (
-                        <button onClick={() => { setEditingItem({ id: `M${Date.now()}`, sport: '', category: '', time: '', location: '', status: 'waiting', winner: '-', score: '-' }); setModalType('match'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold">
+                        <button onClick={() => { setEditingItem({ id: `M${Date.now()}`, sport: '', category: '', time: '', location: '', status: 'waiting', winner: '-', score: '-' }); setModalType('match'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold shadow">
                           ➕ เพิ่มรายการแข่ง
                         </button>
                       )}
@@ -379,14 +379,14 @@
                             matches.map(m => (
                               <tr key={m.id} class="hover:bg-slate-50">
                                 <td class="p-3 font-semibold">{m.sport} ({m.category})</td>
-                                <td class="p-3">{m.time}</td>
-                                <td class="p-3">{m.location}</td>
+                                <td class="p-3 text-slate-600">{m.time}</td>
+                                <td class="p-3 text-slate-600">{m.location}</td>
                                 <td class="p-3">
-                                  <span class={`px-2 py-0.5 rounded text-[10px] font-bold ${m.status==='live'?'bg-red-100 text-red-600':m.status==='finished'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}`}>
+                                  <span class={`px-2 py-0.5 rounded text-[10px] font-bold ${m.status==='live'?'bg-red-100 text-red-600 animate-pulse':m.status==='finished'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}`}>
                                     {m.status==='live'?'🔴 กำลังแข่ง':m.status==='finished'?'จบการแข่ง':'รอแข่ง'}
                                   </span>
                                 </td>
-                                <td class="p-3">{m.score} {m.winner!=='-'&&`(${m.winner})`}</td>
+                                <td class="p-3 font-medium">{m.score} {m.winner!=='-'&&`(${m.winner})`}</td>
                                 {isAdmin && (
                                   <td class="p-3 text-center space-x-2">
                                     <button onClick={() => { setEditingItem(m); setModalType('match'); }} class="text-blue-600">✏️</button>
@@ -402,20 +402,20 @@
                   </div>
                 )}
 
-                {/* RESULTS TAB */}
+                {/* TAB 3: RESULTS */}
                 {activeTab === 'results' && (
                   <div class="space-y-4">
-                    <h2 class="text-lg font-bold">🏆 อัปเดตผลการแข่งขัน</h2>
+                    <h2 class="text-lg font-bold text-slate-800">🏆 อัปเดตผลการแข่งขันล่าสุด</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {matches.filter(m => m.status === 'finished' || m.status === 'live').map(m => (
                         <div key={m.id} class="bg-white rounded-xl p-4 shadow border space-y-2 text-xs">
                           <div class="flex justify-between font-bold border-b pb-2">
                             <span>{m.sport} ({m.category})</span>
-                            <span class={m.status==='live'?'text-red-600':'text-emerald-600'}>{m.status==='live'?'🔴 กำลังแข่ง':'จบการแข่งขัน'}</span>
+                            <span class={m.status==='live'?'text-red-600 animate-pulse':'text-emerald-600'}>{m.status==='live'?'🔴 กำลังแข่ง':'จบการแข่งขัน'}</span>
                           </div>
                           <div class="flex justify-between text-center items-center py-2">
                             <div class={`flex-1 p-2 rounded ${m.winner==='สีฟ้า'?'bg-blue-100 font-bold border border-blue-400':''}`}>คณะสีฟ้า 💙</div>
-                            <div class="px-4 font-bold text-base">{m.score}</div>
+                            <div class="px-4 font-bold text-base text-slate-700">{m.score}</div>
                             <div class={`flex-1 p-2 rounded ${m.winner==='สีแสด'?'bg-orange-100 font-bold border border-orange-400':''}`}>คณะสีแสด 🧡</div>
                           </div>
                         </div>
@@ -424,10 +424,10 @@
                   </div>
                 )}
 
-                {/* MEDALS TAB */}
+                {/* TAB 4: MEDALS */}
                 {activeTab === 'medals' && (
                   <div class="space-y-4">
-                    <h2 class="text-lg font-bold">🥇 ตารางสรุปเหรียญรางวัล</h2>
+                    <h2 class="text-lg font-bold text-slate-800">🥇 ตารางสรุปเหรียญรางวัล</h2>
                     <div class="bg-white rounded-xl shadow border overflow-x-auto">
                       <table class="w-full text-center text-xs">
                         <thead class="bg-slate-100 border-b font-bold">
@@ -454,13 +454,13 @@
                   </div>
                 )}
 
-                {/* ALBUMS TAB */}
+                {/* TAB 5: ALBUMS */}
                 {activeTab === 'albums' && (
                   <div class="space-y-4">
                     <div class="flex justify-between items-center">
-                      <h2 class="text-lg font-bold">📸 ภาพกิจกรรม & ลิงก์ Google Drive</h2>
+                      <h2 class="text-lg font-bold text-slate-800">📸 ภาพกิจกรรม & ลิงก์ Google Drive</h2>
                       {isAdmin && (
-                        <button onClick={() => { setEditingItem({ id: `A${Date.now()}`, title: '', date: '', cover: '', driveUrl: '' }); setModalType('album'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold">
+                        <button onClick={() => { setEditingItem({ id: `A${Date.now()}`, title: '', date: '', cover: '', driveUrl: '' }); setModalType('album'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold shadow">
                           ➕ เพิ่มอัลบั้ม
                         </button>
                       )}
@@ -473,7 +473,7 @@
                           </div>
                           <div class="p-3"><h3 class="font-bold text-xs">{a.title}</h3></div>
                           <div class="p-3 bg-slate-50 border-t flex justify-between items-center">
-                            <a href={a.driveUrl} target="_blank" rel="noopener noreferrer" class="text-xs bg-brand-orange text-white px-2.5 py-1 rounded font-semibold">📂 เปิด Google Drive</a>
+                            <a href={a.driveUrl} target="_blank" rel="noopener noreferrer" class="text-xs bg-brand-orange text-white px-2.5 py-1 rounded font-semibold shadow">📂 เปิด Google Drive</a>
                             {isAdmin && (
                               <div class="space-x-1">
                                 <button onClick={() => { setEditingItem(a); setModalType('album'); }} class="text-xs text-blue-600">✏️</button>
@@ -487,13 +487,13 @@
                   </div>
                 )}
 
-                {/* TEACHERS TAB */}
+                {/* TAB 6: TEACHERS */}
                 {activeTab === 'teachers' && (
                   <div class="space-y-4">
                     <div class="flex justify-between items-center">
-                      <h2 class="text-lg font-bold">🧑🏻‍🏫 รายชื่อคุณครูและคณะกรรมการ</h2>
+                      <h2 class="text-lg font-bold text-slate-800">🧑🏻‍🏫 รายชื่อคุณครูและคณะกรรมการ</h2>
                       {isAdmin && (
-                        <button onClick={() => { setEditingItem({ id: `T${Date.now()}`, name: '', position: '', group: 'คณะกรรมการกลาง', photo: '', phone: '' }); setModalType('teacher'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold">
+                        <button onClick={() => { setEditingItem({ id: `T${Date.now()}`, name: '', position: '', group: 'คณะกรรมการกลาง', photo: '', phone: '' }); setModalType('teacher'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold shadow">
                           ➕ เพิ่มครู
                         </button>
                       )}
@@ -521,13 +521,13 @@
                   </div>
                 )}
 
-                {/* STAFF TAB */}
+                {/* TAB 7: STAFF */}
                 {activeTab === 'staff' && (
                   <div class="space-y-4">
                     <div class="flex justify-between items-center">
-                      <h2 class="text-lg font-bold">🕺🏻 Staff ม.5</h2>
+                      <h2 class="text-lg font-bold text-slate-800">🕺🏻 Staff ม.5</h2>
                       {isAdmin && (
-                        <button onClick={() => { setEditingItem({ id: `ST${Date.now()}`, name: '', room: 'ม.5/1', color: 'สีฟ้า', photo: '' }); setModalType('staff'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold">
+                        <button onClick={() => { setEditingItem({ id: `ST${Date.now()}`, name: '', room: 'ม.5/1', color: 'สีฟ้า', photo: '' }); setModalType('staff'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold shadow">
                           ➕ เพิ่ม Staff
                         </button>
                       )}
@@ -555,13 +555,13 @@
                   </div>
                 )}
 
-                {/* STUDENTS TAB */}
+                {/* TAB 8: STUDENTS */}
                 {activeTab === 'students' && (
                   <div class="space-y-4">
                     <div class="flex justify-between items-center">
-                      <h2 class="text-lg font-bold">😎 ผังนักเรียนแยกตามห้อง</h2>
+                      <h2 class="text-lg font-bold text-slate-800">😎 ผังนักเรียนแยกตามห้อง</h2>
                       {isAdmin && (
-                        <button onClick={() => { setEditingItem({ id: `S${Date.now()}`, room: 'ม.1/1', color: 'สีฟ้า', chartPhoto: '' }); setModalType('student'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold">
+                        <button onClick={() => { setEditingItem({ id: `S${Date.now()}`, room: 'ม.1/1', color: 'สีฟ้า', chartPhoto: '' }); setModalType('student'); }} class="bg-brand-orange text-white px-3 py-1.5 rounded text-xs font-bold shadow">
                           ➕ เพิ่มผังห้อง
                         </button>
                       )}
@@ -588,14 +588,14 @@
                   </div>
                 )}
 
-                {/* REPORTS TAB */}
+                {/* TAB 9: REPORTS */}
                 {activeTab === 'reports' && (
                   <div class="space-y-4">
                     <div class="flex justify-between items-center no-print">
-                      <h2 class="text-lg font-bold">📊 สรุปผล & พิมพ์รายงาน</h2>
+                      <h2 class="text-lg font-bold text-slate-800">📊 สรุปผล & พิมพ์รายงาน</h2>
                       <div class="space-x-2">
-                        <button onClick={handleExportCSV} class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-semibold">📄 CSV</button>
-                        <button onClick={handlePrintPDF} class="bg-brand-blue text-white px-3 py-1.5 rounded text-xs font-semibold">🖨️ PDF</button>
+                        <button onClick={handleExportCSV} class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-semibold shadow">📄 CSV</button>
+                        <button onClick={handlePrintPDF} class="bg-brand-blue text-white px-3 py-1.5 rounded text-xs font-semibold shadow">🖨️ PDF</button>
                       </div>
                     </div>
                     <div id="report-print-area" class="bg-white rounded-xl p-6 shadow border space-y-4">
@@ -624,19 +624,19 @@
                   </div>
                 )}
 
-                {/* ADMIN LOGIN TAB */}
+                {/* TAB 10: ADMIN PORTAL */}
                 {activeTab === 'admin' && (
                   <div class="max-w-md mx-auto my-10 bg-white rounded-xl p-6 shadow border">
                     {!isAdmin ? (
                       <form onSubmit={handleLogin} class="space-y-4">
-                        <h2 class="text-base font-bold text-center">🔒 เข้าสู่ระบบแอดมิน (PIN: 161616)</h2>
+                        <h2 class="text-base font-bold text-center">🔒 เข้าสู่ระบบแอดมิน</h2>
                         {loginError && <p class="text-xs text-red-600 text-center">{loginError}</p>}
                         <input type="password" maxLength="6" placeholder="••••••" value={pinInput} onChange={e => setPinInput(e.target.value)} class="w-full text-center text-2xl p-2 border rounded tracking-widest" />
-                        <button type="submit" class="w-full bg-brand-orange text-white py-2 rounded font-bold text-xs">เข้าสู่ระบบ</button>
+                        <button type="submit" class="w-full bg-brand-orange text-white py-2 rounded font-bold text-xs shadow">เข้าสู่ระบบ</button>
                       </form>
                     ) : (
                       <div class="text-center space-y-3">
-                        <p class="text-green-600 font-bold text-xs">✅ ท่านอยู่ในสถานะแอดมิน (บันทึกลง Google Sheets สด)</p>
+                        <p class="text-green-600 font-bold text-xs">✅ ท่านอยู่ในสถานะแอดมิน (เชื่อม Google Sheets สด)</p>
                         <button onClick={() => setIsAdmin(false)} class="bg-slate-200 text-slate-700 px-3 py-1.5 rounded text-xs font-bold">ออกจากระบบ</button>
                       </div>
                     )}
@@ -714,7 +714,7 @@
 
                 <div class="flex justify-end space-x-2 border-t pt-2">
                   <button onClick={() => { setModalType(null); setEditingItem(null); }} class="px-3 py-1 bg-slate-200 rounded font-bold">ยกเลิก</button>
-                  <button onClick={() => handleSaveItem(modalType, editingItem)} class="px-3 py-1 bg-brand-orange text-white rounded font-bold">บันทึกสดลง Google Sheets</button>
+                  <button onClick={() => handleSaveItem(modalType, editingItem)} class="px-3 py-1 bg-brand-orange text-white rounded font-bold shadow">บันทึกสดลง Google Sheets</button>
                 </div>
               </div>
             </div>
